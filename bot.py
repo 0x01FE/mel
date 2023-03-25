@@ -449,7 +449,7 @@ def res_queue(item): # goes with res_up? i don't know if i still use this actual
 	os.system("cmd /c waifu2x-converter-cpp -c 9 -q 101 --scale-ratio "+item[1][1]+" --noise-level "+item[1][0]+" -m noise-scale -i "+item[0])	
 	
 def download_spfy_song(song_url): # goes with VC stuff if you make the music stuff apart of VC
-	os.system(f'cmd /c py -m zotify --output C:/Users/Jacks/Documents/Python/Sockets/"File Sharing"/Vault-Tec_1.2/temp.ogg {song_url}')
+	os.system(f'cmd /c py -m zotify --output temp.ogg {song_url}')
 	
 
 
