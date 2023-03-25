@@ -1,0 +1,11 @@
+a.py
+audio.mp3
+credentials.json
+*.png
+!data/assets/ar15face.png
+data/assets/tagged_images/tags.json
+data/leaderboard/*.txt
+data/leaderboard/replays/*
+buildandrun.sh
+cogs/config.yml
+gifs/*

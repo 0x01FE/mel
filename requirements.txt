@@ -1,0 +1,15 @@
+numpy==1.21.5
+moviepy==1.0.3
+aiohttp==3.7.4.post0
+pyttsx3==2.90
+tweepy==3.10.0
+fpdf==1.7.2
+requests==2.25.1
+pygame==2.1.2
+discord.py==2.0.1
+wget==3.2
+opencv_python==4.5.1.48
+beautifulsoup4==4.9.3
+discord==1.0.1
+Pillow==8.2.0
+PyYAML==6.0
