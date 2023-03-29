@@ -242,15 +242,6 @@ async def set(ctx, *args):
 					await ctx.send("Successfully set voice to Alice.")
 
 
-@commands.is_owner()
-@bot.command()
-async def burn(ctx):
-	channel_history = await ctx.message.channel.history(limit=None).flatten()
-	for message in channel_history:
-		await message.delete()
-
-
-
 
 
 ## event catchers
@@ -449,10 +440,15 @@ async def status_change():
     elif Chance == 2:
         Chance = randint(0,len(status_list['Playing'])-1)
         await bot.change_presence(status=discord.Status.online, activity=discord.Activity(type=discord.ActivityType.playing, name=status_list['Playing'][Chance]))
-		
+
+'''
+Explanation of why it must wait until the bot is ready.
+Bot cannot make api calls before it is "ready" and it is not "ready" in the setup hook where the loop is started.
+The task loop is not started in on_ready because on ready can run at anytime.
+'''
 @status_change.before_loop
 async def before_status_change():
-	await bot.wait_until_ready() # because the loop is started in setup_hook which i shouldn't be making api calls in
+	await bot.wait_until_ready()
 	
 	
 	

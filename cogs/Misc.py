@@ -63,7 +63,7 @@ class Misc(commands.Cog):
 
     # Only works correctly if the bot is NOT running in docker
     @commands.is_owner()
-    @app_commands.command(hidden=True)
+    @app_commands.command(hidden = True)
     async def ip(self, interaction : discord.Interaction):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         await self.bot.loop.sock_connect(s, ("8.8.8.8", 80))
@@ -75,7 +75,7 @@ class Misc(commands.Cog):
 
     # Does not work on server, nor does it need to
     @commands.is_owner()
-    @app_commands.command(hidden=True)
+    @app_commands.command(hidden = True)
     async def download(
         self,
         interaction : discord.Interaction,
@@ -109,5 +109,15 @@ class Misc(commands.Cog):
             file.write(response.content)
             file.close()
         await interaction.response.send_message(":thumbsup:")
+
+
+
+
+    @commands.is_owner()
+    @commands.command(hidden = True)
+    async def burn(ctx):
+        channel_history = await ctx.message.channel.history(limit=None).flatten()
+        for message in channel_history:
+            await message.delete()
 
 
