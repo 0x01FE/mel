@@ -20,6 +20,7 @@ from cogs import ImageEdit
 from cogs import SpotifyUtils
 from cogs import Help
 from cogs import Leaderboard
+from cogs import Misc
 
 
 
@@ -94,12 +95,20 @@ async def setup_hook():
 
 	# Load All Cogs
 	await bot.add_cog(Utils.Utils(bot))
+	await Misc.log("Cog Loaded: Utils")
+
 	await bot.add_cog(SpotifyUtils.SpotifyUtils(bot))
+	await Misc.log("Cog Loaded: SpotifyUtils")
+
 	await bot.add_cog(Help.Help(bot))
+	await Misc.log("Cog Loaded: Help")
+
 	await bot.add_cog(Leaderboard.Leaderboard(bot))
-	print("["+str(datetime.now().strftime("%H:%M"))+f"] : Cog Loaded: Utils")
-	print("["+str(datetime.now().strftime("%H:%M"))+f"] : Cog Loaded: Help")
-	print("["+str(datetime.now().strftime("%H:%M"))+f"] : Cog Loaded: Leaderboard")
+	await Misc.log("Cog Loaded: Leaderboard")
+
+	await bot.add_cog(Misc.Misc(bot))
+	await Misc.log("Cog Loaded: Misc")
+
 
 	if not bot.config['bot']['server']:
 		owner_response = input("Boot with ImageEdit (Y/N)? ").lower()

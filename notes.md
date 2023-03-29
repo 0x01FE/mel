@@ -7,3 +7,8 @@ removed it on 3/25/2023
 ## TODO
 
  [ ] bot tts still has windows filepaths, although i don't think any of the vc stuff works
+
+
+## Style
+3 empty lines between each command
+pascal casing
