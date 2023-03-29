@@ -142,12 +142,6 @@ async def on_ready():
 
 
 
-	
-@bot.command()
-async def dm_test(ctx):
-	global emperor
-	emperor_dm_channel = await emperor.create_dm()
-	await emperor_dm_channel.send("test")
 
 ## utility
 
