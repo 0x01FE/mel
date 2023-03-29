@@ -165,35 +165,6 @@ async def sync(ctx, *args):
 	else:
 		await ctx.send('There was no message to reference.')
 	
-@bot.command()
-async def download_channel(ctx):
-	if str(ctx.message.author) == bot_author:
-		history = await ctx.message.channel.history(limit=None).flatten()
-		epic_num = 0
-		for message in history:
-			if message.attachments:
-				print("downloading attachment...")
-				response = requests.get(message.attachments[0].url,timeout=60)
-				file = open(message.attachments[0].filename, "wb")
-				file.write(response.content)
-				file.close()
-				print("downloaded.")
-			elif message.embeds:
-				if message.embeds[0].image:
-					print("downloading embed...")
-					print(message.embeds)
-					for embed in message.embeds:
-						response = requests.get(embed.image.url, timeout=60)
-						file = open("epic_embed"+str(epic_num)+".png", "wb")
-						file.write(response.content)
-						file.close()
-						epic_num+=1
-					print("downloaded.")
-		channel = ctx.message.channel
-		async with ctx.typing():
-			channel_history = await channel.history(limit=None).flatten()
-			
-		print("done.")
 
 
 								
