@@ -266,7 +266,7 @@ async def on_message(message):
 			break
 	if message.content:
 		if "so dumb" in message.content.lower():
-			Chance = random.randint(1,20)
+			Chance = randint(1,20)
 			if Chance == 1:
 				await message.channel.send(file=discord.File('tal_so_dumb.gif'))
 
