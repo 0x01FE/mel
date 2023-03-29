@@ -146,55 +146,7 @@ async def on_ready():
 ## utility
 
 
-	
-	
-@bot.command()
-async def sync(ctx, *args):
-	global other_channels
-	if ctx.message.reference:
-		replied_message = await ctx.fetch_message(ctx.message.reference.message_id)
-		url = replied_message.attachments[0].url
-		response = requests.get(url, timeout=60)
-		file = open('sync.png','wb')
-		file.write(response.content)
-		file.close()
-		if replied_message.embeds:
-			await other_channels[ctx.channel.name].send(file=discord.File('sync.png'),embed=replied_message.embeds[0])
-		else:
-			await other_channels[ctx.channel.name].send(file=discord.File('sync.png'))
-	else:
-		await ctx.send('There was no message to reference.')
-	
-
-
 								
-
-@bot.command()
-async def channel_scroll(ctx):
-	global active_viewers
-	embed_colour = ctx.me.colour
-	channel = ctx.message.channel
-	async with ctx.typing():
-		channel_history = await channel.history(limit=None).flatten()
-	image_links = []
-	for message in channel_history:
-		if message.attachments:
-			for attachment in message.attachments:
-				image_links.append((attachment.url,message.id))
-		elif message.embeds:
-			for embed in message.embeds:
-				if embed.type == 'image' or embed.type == 'gifv':
-					image_links.append((embed.url,message.id))
-	embed_send = discord.Embed(title='Image Viewer',description='Use the arrow reactions to scroll.',colour = embed_colour)
-	embed_send.set_footer(text='Bot developed by ' + bot_author)
-	embed_send.set_image(url=image_links[0][0])
-	message_sent = await ctx.send(embed=embed_send)
-	active_viewers[message_sent.id] = (message_sent, ctx.message.author, 0, image_links)
-	await message_sent.add_reaction(emoji=rewind)
-	await message_sent.add_reaction(emoji=arrow_left)
-	await message_sent.add_reaction(emoji=arrow_right)
-	await message_sent.add_reaction(emoji=fast_forward)
-
 			
 @bot.command()
 async def gif_archive(ctx): # TODO: FIX THIS, tenor_apikey is from old config
