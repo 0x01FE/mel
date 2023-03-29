@@ -12,6 +12,7 @@ from discord import app_commands
 from multiprocessing import Process
 from moviepy.editor import VideoFileClip
 from typing import Optional
+import random
 
 # COGS
 from cogs import Utils
@@ -345,8 +346,11 @@ async def on_message(message):
 		if trigger:
 			break
 	if message.content:
-		if "so dumb" in message.content:
-			await message.channel.send(file=discord.File('tal_so_dumb.gif'))
+		if "so dumb" in message.content.lower():
+			Chance = random.randint(1,20)
+			if Chance == 1:
+				await message.channel.send(file=discord.File('tal_so_dumb.gif'))
+
 		if message.content[0] == "'": ## TEXT TO SPEECH
 			if message.author.voice:
 				if bot.user not in message.author.voice.channel.members:
