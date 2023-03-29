@@ -1,18 +1,22 @@
+import discord
+from discord import app_commands
+from discord.ext import commands, tasks
+
 from socket import TIPC_WITHDRAWN
-import aiohttp, asyncio, discord, requests, os, pyttsx3, dice_master as dice, tweepy, wget, math, glob, json, yaml
-import random as r
+import aiohttp, asyncio, requests, os, pyttsx3, dice_master as dice, tweepy, wget, math, glob, json, yaml
 from urllib.parse import urlparse
 from datetime import datetime
 from bs4 import BeautifulSoup as _soup
 from PIL import Image
 import os
 #from fpdf import FPDF
-from discord.ext import commands, tasks
-from discord import app_commands
+
 from multiprocessing import Process
 from moviepy.editor import VideoFileClip
 from typing import Optional
-import random
+
+
+from random import randint
 
 # COGS
 from cogs import Utils
@@ -24,10 +28,7 @@ from cogs import Misc
 
 
 
-status_list = {
-	'Listening' : ['ZUN','Nanahira','Master Boot Record','Goreshit','Yakui the Maid','Starjunk 95', "Danny Sexbang and Ninja Brian"],
-	'Playing' : ['Your mother.','Touhou 14.5 : Urban Legends in Limbo', 'Touhou 7 : Perfect Cherry Blossom', "Tom Clanky's Rainbow Sex"]
-}
+
 locations = {'gifs':'gifs\\','downloads':'D:\\bot downloads\\'}
 
 
@@ -47,6 +48,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix = "-", intents = intents)
 
+STATUS_LIST_PATH = 'data/assets/status-list.json'
 CONFIG_PATH = 'cogs/config.yml'
 
 
@@ -434,13 +436,19 @@ async def before_vc_check():
 
 @tasks.loop(minutes=15.0,count=None)
 async def status_change():
-	placeholder_int = r.randint(1,2)
-	if placeholder_int == 1:
-		placeholder_int = r.randint(0,len(status_list['Listening'])-1)
-		await bot.change_presence(status=discord.Status.online, activity=discord.Activity(type=discord.ActivityType.listening, name=status_list['Listening'][placeholder_int]))
-	elif placeholder_int == 2:
-		placeholder_int = r.randint(0,len(status_list['Playing'])-1)
-		await bot.change_presence(status=discord.Status.online, activity=discord.Activity(type=discord.ActivityType.playing, name=status_list['Playing'][placeholder_int]))
+
+    with open(STATUS_LIST_PATH, "r") as f:
+        status_list = json.load(f)
+
+    Chance = randint(1,2)
+
+    if Chance == 1:
+        Chance = randint(0,len(status_list['Listening'])-1)
+        await bot.change_presence(status=discord.Status.online, activity=discord.Activity(type=discord.ActivityType.listening, name=status_list['Listening'][Chance]))
+
+    elif Chance == 2:
+        Chance = randint(0,len(status_list['Playing'])-1)
+        await bot.change_presence(status=discord.Status.online, activity=discord.Activity(type=discord.ActivityType.playing, name=status_list['Playing'][Chance]))
 		
 @status_change.before_loop
 async def before_status_change():
