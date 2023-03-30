@@ -27,8 +27,8 @@ from cogs import Leaderboard
 from cogs import Misc
 
 
-
-
+AR15FACE_FILE_PATH = 'data/assets/ar15face.png'
+TAL_FILE_PATH = 'data/assets/tal_so_dumb.gif'
 locations = {'gifs':'gifs\\','downloads':'D:\\bot downloads\\'}
 
 engine = pyttsx3.init()
@@ -175,32 +175,23 @@ async def set(ctx, *args):
 @bot.event
 async def on_message(message : discord.Message):
     global vc
-    trigger = False
 
     with open(ODEN_PATH, 'r') as f:
         words = json.loads(f.read())['words']
 
+    MessageWords = message.content.lower().split(' ')
+
     for word in words:
-        for message_word in message.content.lower().split(' '):
+        if word.split(' ') in MessageWords:
+            if message.author.name == '3rror8' and message.author.discriminator == '6155':
+                await message.channel.send(file=discord.File(AR15FACE_FILE_PATH))
+                break
 
-            # This is to keep 3rror8 from putting numbers in the middle of the word
-            ans = ''
-            for char in message_word:
-                if char.isalpha():
-                    ans+=char
-
-            if word.lower() == ans:
-                if message.author.name == '3rror8' and message.author.discriminator == '6155':
-                    await message.channel.send(file=discord.File('ar15face.png'))
-                    trigger = True
-                    break
-        if trigger:
-            break
     if message.content:
         if "so dumb" in message.content.lower():
-            Chance = randint(1,20)
+            Chance = randint(1,5)
             if Chance == 1:
-                await message.channel.send(file=discord.File('tal_so_dumb.gif'))
+                await message.channel.send(file=discord.File(TAL_FILE_PATH))
 
         if message.content[0] == "'": ## TEXT TO SPEECH
             if message.author.voice:
