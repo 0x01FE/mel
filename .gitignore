@@ -9,3 +9,4 @@ data/leaderboard/replays/*
 buildandrun.sh
 cogs/config.yml
 gifs/*
+data/assets/oden.json

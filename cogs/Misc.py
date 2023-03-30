@@ -24,6 +24,7 @@ from asyncio import sleep
 from urllib.parse import urlparse
 
 from .Utils import log
+from .dice import convert_dice
 
 
 THUMBS_UP = u"\U0001F44D"
@@ -32,6 +33,7 @@ locations = {
 	'downloads':'D:\\bot downloads\\'
 }
 
+TEMP_DATA_PATH = '../data/temp'
 
 class Misc(commands.Cog):
     def __init__(self, bot):
@@ -166,5 +168,31 @@ class Misc(commands.Cog):
                                 except:
                                     await log(f'Failed gif download Link: { embed.url }')
         await ctx.send('Done.')
+
+    @commands.command()
+    async def dicer(self, ctx : commands.Context):
+        DicePath = f"{ TEMP_DATA_PATH }/dice.png"
+
+        if ctx.message.attachments:
+            Response = requests.get(ctx.message.attachments[0].url)
+
+        elif ctx.message.embeds:
+            Response = requests.get(ctx.message.embeds[0].url)
+
+        with open(DicePath, "wb") as f:
+            f.write(Response.content)
+
+        async with ctx.typing():
+            try:
+                convert_dice(DicePath)
+            except:
+                await ctx.send("@0x01FE#1244 your stupid bot is broken again")
+
+            try:
+                await ctx.send(file=discord.File(DicePath))
+            except:
+                await ctx.send("The file was to big to send")
+
+        os.remove(DicePath)
 
 

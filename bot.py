@@ -3,7 +3,7 @@ from discord import app_commands
 from discord.ext import commands, tasks
 
 from socket import TIPC_WITHDRAWN
-import aiohttp, asyncio, requests, os, pyttsx3, dice_master as dice, tweepy, wget, math, glob, json, yaml
+import aiohttp, asyncio, requests, os, pyttsx3, tweepy, wget, math, glob, json, yaml
 from urllib.parse import urlparse
 from datetime import datetime
 from bs4 import BeautifulSoup as _soup
@@ -31,14 +31,6 @@ from cogs import Misc
 
 locations = {'gifs':'gifs\\','downloads':'D:\\bot downloads\\'}
 
-
-rewind = '\u23EA'
-arrow_left = '\u2B05'
-arrow_right = '\u27A1'
-fast_forward = '\u23E9'
-thumbs_up = u"\U0001F44D"
-x_emoji = '\u274C'
-active_viewers = {} ## by message id
 engine = pyttsx3.init()
 voices = engine.getProperty('voices')
 
@@ -49,9 +41,9 @@ bot = commands.Bot(command_prefix = "-", intents = intents)
 
 STATUS_LIST_PATH = 'data/assets/status-list.json'
 CONFIG_PATH = 'cogs/config.yml'
+ODEN_PATH = 'data/assets/oden.json'
 
 
-guns_channel = None
 vc = None
 pic_ext = ['.jpg','.png','.jpeg','.webp']
 
@@ -60,13 +52,9 @@ pic_ext = ['.jpg','.png','.jpeg','.webp']
 with open(CONFIG_PATH, 'r') as f:
 	config = yaml.safe_load(f)
 
+
 token = config['bot']['token']
 
-
-
-
-
-## basic commands
 
 
 
@@ -144,37 +132,6 @@ async def on_ready():
 
 
 ## utility
-
-
-								
-
-
-@bot.command()
-async def dicer(ctx):		
-	if ctx.message.attachments:
-		response = requests.get(ctx.message.attachments[0].url)
-	elif ctx.message.embeds:
-		response = requests.get(ctx.message.embeds[0].url)
-	file = open("soon_to_be_dice.png", "wb")
-	file.write(response.content)
-	file.close()
-	async with ctx.typing():
-		try:
-			dice.convert_dice('soon_to_be_dice.png')
-		except:
-			await ctx.send("@MisterUnknown#1244 your stupid bot is broken again")
-		try:
-			await ctx.send(file=discord.File('soon_to_be_dice_dice.png'))
-		except:
-			await ctx.send("The file was to big to send")	
-
-@bot.command()
-async def leave(ctx):
-	if ctx.message.author.voice.channel and bot.user in ctx.message.author.voice.channel.members:
-		await ctx.message.channel.guild.voice_client.disconnect()	
-		await ctx.message.add_reaction(thumbs_up)
-	else:
-		await ctx.message.reply('User is not in voice channel.')	
 		
 @bot.command()
 async def set(ctx, *args):
@@ -216,142 +173,57 @@ async def set(ctx, *args):
 ## event catchers
 
 @bot.event
-async def on_message(message):
-	global vc
-	trigger = False
-	trigger_words = ['odor','feet','stink','lick','sweat','soles','smell','toes','sniff','socks','stench','musk','reek','feets','stinky','reeks','licking','licks','sweaty','sole','smelly','rogue lineage','toe','sock']
-	for word in trigger_words:
-		for message_word in message.content.lower().split(' '):
-			ans = ''
-			for char in message_word:
-				if char.isalpha():
-					ans+=char
-			if word.lower() == ans:
-				if message.author.name == '3rror8' and message.author.discriminator == '6155':
-					await message.channel.send(file=discord.File('ar15face.png'))
-					trigger = True
-					break
-		if trigger:
-			break
-	if message.content:
-		if "so dumb" in message.content.lower():
-			Chance = randint(1,20)
-			if Chance == 1:
-				await message.channel.send(file=discord.File('tal_so_dumb.gif'))
+async def on_message(message : discord.Message):
+    global vc
+    trigger = False
 
-		if message.content[0] == "'": ## TEXT TO SPEECH
-			if message.author.voice:
-				if bot.user not in message.author.voice.channel.members:
-					await message.author.voice.channel.connect()
-				if message.author.name == 'chicken little' and message.author.discriminator == '2608' and 'get real' in message.content:
-					await message.channel.send('YOU are not allowed to say that.')
-				elif message.content == "'leave":
-					if message.author.voice.channel and bot.user in message.author.voice.channel.members:
-						await message.channel.guild.voice_client.disconnect()
-				else:
-					await message.channel.guild.change_voice_state(channel=message.author.voice.channel, self_deaf=True)
-					engine.save_to_file(message.content[1:], 'audio.mp3')
-					engine.runAndWait()
-					message.channel.guild.voice_client.play(discord.FFmpegPCMAudio(executable="D:/ffmpeg-20200831-4a11a6f-win64-static/bin/ffmpeg.exe", source="audio.mp3"))
-			else:
-				await message.reply("User is not in a voice channel.")
-		elif message.content[:2] == '--':
-			pass
-		else:
-			await bot.process_commands(message)
-	else:
-		await bot.process_commands(message)
-		
-@bot.event
-async def on_reaction_add(reaction, user):
-	global active_viewers
-	if reaction.message.id in active_viewers:
-		message = active_viewers[reaction.message.id][0]
-		author = active_viewers[reaction.message.id][1]
-		place = active_viewers[reaction.message.id][2]
-		image_links = active_viewers[reaction.message.id][3]
-		if user == author:
-			if reaction.emoji == rewind:
-				if place-5 > 0:
-					embed = message.embeds[0]
-					place-=5
-					embed.set_image(url=image_links[place][0])
-					await message.edit(embed=embed)
-					await reaction.remove(author)
-			elif reaction.emoji == arrow_left:
-				if place-1 >= 0:
-					embed = message.embeds[0]
-					place-=1
-					embed.set_image(url=image_links[place][0])
-					await message.edit(embed=embed)
-					await reaction.remove(author)
-			elif reaction.emoji == arrow_right:
-				if place+1 <= len(image_links):
-					embed = message.embeds[0]
-					place+=1
-					embed.set_image(url=image_links[place][0])
-					await message.edit(embed=embed)
-					await reaction.remove(author)
-			elif reaction.emoji == fast_forward:
-				if place+5 <= len(image_links):
-					embed = message.embeds[0]
-					place+=5
-					embed.set_image(url=image_links[place][0])
-					await message.edit(embed=embed)
-					await reaction.remove(author)
-			elif reaction.emoji == x_emoji:
-				perms = user.permissions_in(reaction.message.channel)
-				if perms.manage_messages:
-					temp = await reaction.message.channel.fetch_message(image_links[place][1])
-					print(temp.content)
-				await temp.delete()
-				await reaction.remove(author)
-		active_viewers[reaction.message.id] = (message,author,place,image_links)
-			
+    with open(ODEN_PATH, 'r') as f:
+        words = json.loads(f.read())['words']
 
-# Work In Progress
-@bot.command()
-async def play(ctx, url):
-	message = ctx.message
-	if message.author.voice: ## check if in vc
-		if bot.user not in message.author.voice.channel.members: ## check if client already open in that vc
-			await message.author.voice.channel.connect()
-		## actual stuff
-		tasks = []
-		tasks.append(bot.loop.run_in_executor(None, download_spfy_song, url)) ## run download in another thread
-		await asyncio.wait(tasks)
-		await message.channel.guild.change_voice_state(channel=message.author.voice.channel, self_deaf=True)
-		message.channel.guild.voice_client.play(discord.FFmpegPCMAudio(executable="D:/ffmpeg-20200831-4a11a6f-win64-static/bin/ffmpeg.exe", source='temp.mp3'))
-	else:
-		await message.reply("User is not in a voice channel.")
-	
+    for word in words:
+        for message_word in message.content.lower().split(' '):
 
-	
-	
-	
-	
-		
-## general methods (will need to go with their respective commands)
+            # This is to keep 3rror8 from putting numbers in the middle of the word
+            ans = ''
+            for char in message_word:
+                if char.isalpha():
+                    ans+=char
 
-def res_up_local(filename): # goes with res_up
-	scale, noise = 2, 3
-	os.system("cmd /c waifu2x-converter-cpp -c 9 -q 101 --scale-ratio "+str(scale)+" --noise-level "+str(noise)+" -m noise-scale -i "+filename)
+            if word.lower() == ans:
+                if message.author.name == '3rror8' and message.author.discriminator == '6155':
+                    await message.channel.send(file=discord.File('ar15face.png'))
+                    trigger = True
+                    break
+        if trigger:
+            break
+    if message.content:
+        if "so dumb" in message.content.lower():
+            Chance = randint(1,20)
+            if Chance == 1:
+                await message.channel.send(file=discord.File('tal_so_dumb.gif'))
 
-def res_queue(item): # goes with res_up? i don't know if i still use this actually
-	os.system("cmd /c waifu2x-converter-cpp -c 9 -q 101 --scale-ratio "+item[1][1]+" --noise-level "+item[1][0]+" -m noise-scale -i "+item[0])	
-	
-def download_spfy_song(song_url): # goes with VC stuff if you make the music stuff apart of VC
-	os.system(f'cmd /c py -m zotify --output temp.ogg {song_url}')
-	
-
-
-async def cmd_log_add(cmd,user,time): # only used for a twitter command i think
-	log_data = None
-	with open('log.txt','r') as f:
-		log_data = f.read()
-	with open('log.txt','w+') as f:
-		f.write(log_data + '\n' + cmd+' by: '+str(user)+' at '+str(time))
-
+        if message.content[0] == "'": ## TEXT TO SPEECH
+            if message.author.voice:
+                if bot.user not in message.author.voice.channel.members:
+                    await message.author.voice.channel.connect()
+                if message.author.name == 'chicken little' and message.author.discriminator == '2608' and 'get real' in message.content:
+                    await message.channel.send('YOU are not allowed to say that.')
+                elif message.content == "'leave":
+                    if message.author.voice.channel and bot.user in message.author.voice.channel.members:
+                        await message.channel.guild.voice_client.disconnect()
+                else:
+                    await message.channel.guild.change_voice_state(channel=message.author.voice.channel, self_deaf=True)
+                    engine.save_to_file(message.content[1:], 'audio.mp3')
+                    engine.runAndWait()
+                    message.channel.guild.voice_client.play(discord.FFmpegPCMAudio(source="audio.mp3"))
+            else:
+                await message.reply("User is not in a voice channel.")
+        elif message.content[:2] == '--':
+            pass
+        else:
+            await bot.process_commands(message)
+    else:
+        await bot.process_commands(message)
 
 
 
@@ -360,16 +232,16 @@ async def cmd_log_add(cmd,user,time): # only used for a twitter command i think
 ## HELP EMBED BUILDERS {this 100% needs to go with the VC stuff}
 
 async def help_tts_embed(embed_colour):
-	embed = discord.Embed(title = "TTS Help Menu", description = 'Welcome to the TTS help menu.', colour = embed_colour)
-	embed.set_footer(text='Bot developed by '+bot_author+".")
-	embed.add_field(name='-set tts', value='> Brings up this help menu.\nValues:\n  <+> speed\n  > Default is 200 words per minute. Can range from 100-300 words per minute.\n  <+> voice\n  > Two available voices include Tim and Alice. ',inline=False)
-	return embed
-	
+    embed = discord.Embed(title = "TTS Help Menu", description = 'Welcome to the TTS help menu.', colour = embed_colour)
+    embed.set_footer(text='Bot developed by 0x01FE#1244')
+    embed.add_field(name='-set tts', value='> Brings up this help menu.\nValues:\n  <+> speed\n  > Default is 200 words per minute. Can range from 100-300 words per minute.\n  <+> voice\n  > Two available voices include Tim and Alice. ',inline=False)
+    return embed
+
 async def help_set_embed(embed_colour):
-	embed = discord.Embed(title = "Set Help Menu", description = 'Welcome to the set help menu.', colour = embed_colour)
-	embed.set_footer(text='Bot developed by '+bot_author+".")
-	embed.add_field(name='-set tts', value='> Brings up this help menu.\nValues:\n  <+> speed\n  > Default is 200 words per minute. Can range from 100-300 words per minute.\n  <+> voice\n  > Two available voices include Tim and Alice. ',inline=False)
-	return embed
+    embed = discord.Embed(title = "Set Help Menu", description = 'Welcome to the set help menu.', colour = embed_colour)
+    embed.set_footer(text='Bot developed by 0x01FE#1244.')
+    embed.add_field(name='-set tts', value='> Brings up this help menu.\nValues:\n  <+> speed\n  > Default is 200 words per minute. Can range from 100-300 words per minute.\n  <+> voice\n  > Two available voices include Tim and Alice. ',inline=False)
+    return embed
 
 
 
@@ -383,13 +255,13 @@ async def help_set_embed(embed_colour):
 '''
 @tasks.loop(seconds=10,count=None)
 async def vc_check():
-	for voice_client in bot.voice_clients:
-		if len(voice_client.channel.members) == 1:
-			await voice_client.disconnect()
+    for voice_client in bot.voice_clients:
+        if len(voice_client.channel.members) == 1:
+            await voice_client.disconnect()
 
 @vc_check.before_loop
 async def before_vc_check():
-	await bot.wait_until_ready()
+    await bot.wait_until_ready()
 '''	
 
 
@@ -417,9 +289,9 @@ The task loop is not started in on_ready because on ready can run at anytime.
 '''
 @status_change.before_loop
 async def before_status_change():
-	await bot.wait_until_ready()
-	
-	
-	
+    await bot.wait_until_ready()
+
+
+
 
 bot.run(token)
