@@ -24,12 +24,13 @@ class ImageEdit(commands.Cog):
 		self.tasks = []
 
 
-		with open(CONFIG_PATH,'r') as f:
-			config = yaml.safe_load(f)
-		consumer_key = config['bot']['twitter']['consumer_key']
-		consumer_secret = config['bot']['twitter']['consumer_secret']
-		access_token = config['bot']['twitter']['access_token']
-		access_token_secret = config['bot']['twitter']['access_secret']
+
+
+		consumer_key = self.bot.config['bot']['twitter']['consumer_key']
+		consumer_secret = self.bot.config['bot']['twitter']['consumer_secret']
+		access_token = self.bot.config['bot']['twitter']['access_token']
+		access_token_secret = self.bot.config['bot']['twitter']['access_secret']
+
 		auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 		auth.set_access_token(access_token, access_token_secret)
 		self.api = tweepy.API(auth,wait_on_rate_limit=True)
