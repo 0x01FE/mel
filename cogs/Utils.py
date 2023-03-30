@@ -124,7 +124,7 @@ class Utils(commands.Cog):
 
 # To be used by all other cogs
 async def log(Text : str):
-    Time = datetime.now().strftime("%H:%M")
+    Time = datetime.now().strftime("%Y/%m/%d - %H:%M")
     LogMessage = f"[{ Time }] : { Text }"
 
     print(LogMessage)
