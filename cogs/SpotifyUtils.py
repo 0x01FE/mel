@@ -9,6 +9,9 @@ from discord.ext import commands
 import json
 from typing import Optional
 
+ARTIST_GENRE_MAP_PATH = 'data/assets/artistGenreMap.json'
+
+
 class SpotifyUtils(commands.Cog):
 
     def __init__(self, bot):
@@ -21,8 +24,7 @@ class SpotifyUtils(commands.Cog):
             self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope))
         '''
 
-
-        with open("artistGenreMap.json", "r+") as f:
+        with open(ARTIST_GENRE_MAP_PATH, "r+") as f:
             self.artistGenreMap = json.loads(f.read())
     
 

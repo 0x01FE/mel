@@ -12,3 +12,7 @@ removed it on 3/25/2023
 ## Style
 3 empty lines between each command
 pascal casing
+
+## About data/assets
+volumes make it so that when COPY . . is ran in the dockerfile, that is overwritten by the volume
+

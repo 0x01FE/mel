@@ -20,7 +20,7 @@ import requests
 import os
 from urllib.parse import urlparse
 
-from Utils import log
+from .Utils import log
 
 
 THUMBS_UP = u"\U0001F44D"
@@ -63,7 +63,7 @@ class Misc(commands.Cog):
 
     # Only works correctly if the bot is NOT running in docker
     @commands.is_owner()
-    @app_commands.command(hidden = True)
+    @app_commands.command()
     async def ip(self, interaction : discord.Interaction):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         await self.bot.loop.sock_connect(s, ("8.8.8.8", 80))
@@ -75,7 +75,7 @@ class Misc(commands.Cog):
 
     # Does not work on server, nor does it need to
     @commands.is_owner()
-    @app_commands.command(hidden = True)
+    @app_commands.command()
     async def download(
         self,
         interaction : discord.Interaction,
@@ -114,8 +114,8 @@ class Misc(commands.Cog):
 
 
     @commands.is_owner()
-    @commands.command(hidden = True)
-    async def burn(ctx):
+    @commands.command()
+    async def burn(self, ctx):
         channel_history = await ctx.message.channel.history(limit=None).flatten()
         for message in channel_history:
             await message.delete()

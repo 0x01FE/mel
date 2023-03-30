@@ -12,7 +12,7 @@ from urllib.parse import urlparse
 #device = "cuda"
 #MY_TOKEN = "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" # load this from a file later
 
-CONFIG_PATH = './config.yml'
+CONFIG_PATH = 'cogs/config.yml'
 
 
 
