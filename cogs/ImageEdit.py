@@ -14,6 +14,7 @@ from urllib.parse import urlparse
 
 CONFIG_PATH = 'cogs/config.yml'
 
+from .Misc import log
 
 
 class ImageEdit(commands.Cog):
@@ -291,7 +292,7 @@ class ImageEdit(commands.Cog):
 		tags : Optional[str],
 		extraction_numbers : Optional[str]
 	):
-		await self.cmd_log_add(f'/twitter {url} by {interaction.user}')
+		await log(f'/twitter {url} by {interaction.user}')
 		other_channels = {}
 		other_server = self.bot.get_guild(883156816249368576)
 		other_channels['other'] = other_server.get_channel(883157788421935136)
@@ -299,7 +300,6 @@ class ImageEdit(commands.Cog):
 		other_channels['touhou'] = other_server.get_channel(883395217414291456)
 		other_channels['tower-defense-girls'] = other_server.get_channel(883202503888490528)
 		other_channels['guns'] = other_server.get_channel(883574520882012170)
-		#await cmd_log_add("-twitter",interaction.user,interaction.created_at)
 		await interaction.response.defer()
 		trigger = False
 		embed_colour = interaction.guild.self_role.colour
