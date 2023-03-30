@@ -18,6 +18,7 @@ from typing import Literal
 import socket
 import requests
 import os
+from asyncio import sleep
 from urllib.parse import urlparse
 
 from .Utils import log
@@ -115,9 +116,11 @@ class Misc(commands.Cog):
 
     @commands.is_owner()
     @commands.command()
-    async def burn(self, ctx):
-        channel_history = await ctx.message.channel.history(limit=None).flatten()
+    async def burn(self, ctx : commands.Context):
+        channel_history = [message async for message in ctx.message.channel.history(limit=None)]
+
         for message in channel_history:
             await message.delete()
+            await sleep(1) # this is to not spam the logs with rate limit warnings
 
 
