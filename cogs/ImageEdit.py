@@ -108,7 +108,7 @@ class ImageEdit(commands.Cog):
 
 	@commands.command()
 	async def twitter(self, ctx, *args):
-		await self.cmd_log_add(f'{ctx.message.content} by {ctx.message.author}')
+		await log(f'{ctx.message.content} by {ctx.message.author}')
 		other_channels = {}
 		other_server = self.bot.get_guild(883156816249368576)
 		other_channels['other'] = other_server.get_channel(883157788421935136)
@@ -280,6 +280,8 @@ class ImageEdit(commands.Cog):
 				counter_a+=1
 			await ctx.message.delete()
 
+
+
 	# twitter slash
 	@app_commands.command()
 	async def twitter(
@@ -422,20 +424,17 @@ class ImageEdit(commands.Cog):
 				counter_a+=1
 
 
-	async def cmd_log_add(self, data): # only used for a twitter command i think
-		log_data = None
-		time = '['+str(datetime.now().strftime("%H:%M"))+'] : '
-		with open('./logs/log.txt','r') as f:
-			log_data = f.read()
-		with open('./logs/log.txt','w+') as f:
-			f.write(log_data + '\n' + time + data)
 
 	def res_up_local(self, filename): # goes with res_up
 		scale, noise = 2, 3
 		os.system("cmd /c w2x/waifu2x-converter-cpp -c 9 -q 101 --scale-ratio "+str(scale)+" --noise-level "+str(noise)+" -m noise-scale -i "+filename)
 
+
+
 	def res_queue(self, item): # goes with res_up? i don't know if i still use this actually
 		os.system("cmd /c waifu2x-converter-cpp -c 9 -q 101 --scale-ratio "+item[1][1]+" --noise-level "+item[1][0]+" -m noise-scale -i "+item[0])
+
+
 
 	@app_commands.command()
 	async def res_up(
