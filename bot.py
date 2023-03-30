@@ -39,7 +39,6 @@ fast_forward = '\u23E9'
 thumbs_up = u"\U0001F44D"
 x_emoji = '\u274C'
 active_viewers = {} ## by message id
-bot_author = '0x01FE#1244'
 engine = pyttsx3.init()
 voices = engine.getProperty('voices')
 
@@ -74,7 +73,6 @@ token = config['bot']['token']
 @bot.event
 async def setup_hook():
 	global other_channels
-	global emperor
 	print('Logged in as')
 	print(bot.user.name)
 	print(bot.user.id)
@@ -119,12 +117,11 @@ async def setup_hook():
 
 	if owner_response == "y":
 		await bot.add_cog(ImageEdit.ImageEdit(bot))
-		print("["+str(datetime.now().strftime("%H:%M"))+f"] : Cogs Loaded: ImageEdit")
+		await Misc.log("Cog Loaded: ImageEdit")
 
 	##vc_check.start()
 	status_change.start()
-	emperor = await bot.fetch_user(516017792739311636) # Me
-	print("["+str(datetime.now().strftime("%H:%M"))+"] : Bot Pre-Initialized")
+	await Misc.log("Bot Pre-Initialized")
 		
 
 @bot.event
@@ -132,13 +129,14 @@ async def on_ready():
 	# Load all app_commands for all guilds
 
 	if bot.first_ready:
+
 		for guild in bot.guilds:
-			print("["+str(datetime.now().strftime("%H:%M"))+f"] : Commands added to : {guild.name}")
 			guild_obj = discord.Object(id=guild.id)
 			bot.tree.copy_global_to(guild=guild_obj)
 			await bot.tree.sync(guild=guild_obj)
-			other_channels = {}
-		print("["+str(datetime.now().strftime("%H:%M"))+"] : Bot Initialized")
+			await Misc.log(f"Commands synced in : {guild.name}")
+
+		await Misc.log("Bot Initialized")
 		bot.first_ready = False
 		
 
@@ -149,36 +147,7 @@ async def on_ready():
 
 
 								
-			
-@bot.command()
-async def gif_archive(ctx): # TODO: FIX THIS, tenor_apikey is from old config
-	if str(ctx.message.author) == bot_author:
-		gif_list = glob.glob('gifs')
-		async with ctx.typing():
-			history = await ctx.message.channel.history(limit=None).flatten()
-			for message in history:
-				if message.embeds:
-					for embed in message.embeds:
-						if (str(message.id) + '.gif') not in gif_list:
-							if 'tenor' in embed.url:
-								tenor_id = embed.url.split('-')[-1]
-								response = json.loads(requests.get(bot.tenor_base_url.format(tenor_id, tenor_apikey), timeout=60).content)
-								try:
-									response = requests.get(response['results'][0]['media'][0]['gif']['url'],timeout=60)
-									file = open('gifs/'+str(message.id)+'.gif', "wb")
-									file.write(response.content)
-									file.close()
-								except:
-									print(response)
-							else:
-								try:
-									response = requests.get(embed.url, timeout=60)
-									file = open('gifs/'+str(message.id)+'.gif', "wb")
-									file.write(response.content)
-									file.close()
-								except:
-									print('Failed gif download\nLink: '+embed.url+'\n')
-		await ctx.send('Done.')
+
 
 @bot.command()
 async def dicer(ctx):		

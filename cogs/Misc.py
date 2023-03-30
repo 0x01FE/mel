@@ -18,6 +18,8 @@ from typing import Literal
 import socket
 import requests
 import os
+import glob
+import json
 from asyncio import sleep
 from urllib.parse import urlparse
 
@@ -113,7 +115,6 @@ class Misc(commands.Cog):
 
 
 
-
     @commands.is_owner()
     @commands.command()
     async def burn(self, ctx : commands.Context):
@@ -122,5 +123,48 @@ class Misc(commands.Cog):
         for message in channel_history:
             await message.delete()
             await sleep(1) # this is to not spam the logs with rate limit warnings
+
+
+
+    @commands.is_owner()
+    @commands.command()
+    async def gif_archive(self, ctx : commands.Context):
+        gif_list = glob.glob('gifs')
+
+        async with ctx.typing():
+            history = [message async for message in ctx.message.channel.history(limit=None)]
+            tenor_apikey = self.bot.config['bot']['tenor']['api_key']
+
+            for message in history:
+
+                if message.embeds:
+
+                    for embed in message.embeds:
+
+                        if (str(message.id) + '.gif') not in gif_list:
+
+                            if 'tenor' in embed.url:
+                                tenor_id = embed.url.split('-')[-1]
+                                response = json.loads(requests.get(self.bot.tenor_base_url.format(tenor_id, tenor_apikey), timeout=60).content)
+
+                                try:
+                                    response = requests.get(response['results'][0]['media'][0]['gif']['url'],timeout=60)
+                                    file = open(f'gifs/{ message.id }.gif', "wb")
+                                    file.write(response.content)
+                                    file.close()
+
+                                except:
+                                    print(response)
+
+                            else:
+                                try:
+                                    response = requests.get(embed.url, timeout=60)
+                                    file = open(f'gifs/{ message.id }.gif', "wb")
+                                    file.write(response.content)
+                                    file.close()
+
+                                except:
+                                    await log(f'Failed gif download Link: { embed.url }')
+        await ctx.send('Done.')
 
 
