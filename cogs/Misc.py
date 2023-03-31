@@ -24,7 +24,7 @@ from asyncio import sleep
 from urllib.parse import urlparse
 
 from .Utils import log
-from .dice import convert_dice
+from .Numbers import ImageToNumbers
 
 
 THUMBS_UP = u"\U0001F44D"
@@ -169,30 +169,36 @@ class Misc(commands.Cog):
                                     await log(f'Failed gif download Link: { embed.url }')
         await ctx.send('Done.')
 
-    @commands.command()
-    async def dicer(self, ctx : commands.Context):
-        DicePath = f"{ TEMP_DATA_PATH }/dice.png"
 
-        if ctx.message.attachments:
-            Response = requests.get(ctx.message.attachments[0].url)
 
-        elif ctx.message.embeds:
-            Response = requests.get(ctx.message.embeds[0].url)
+    @app_commands.command()
+    async def numbers(self,
+        interaction : discord.Interaction,
+        shades : int,
+        attachment : discord.Attachment
+    ):
 
-        with open(DicePath, "wb") as f:
-            f.write(Response.content)
+        if not shades in range(1,10):
+            await interaction.response.send_message(f"Shades was {shades}; Must be a number in range(1, 9).")
+            return
 
-        async with ctx.typing():
-            try:
-                convert_dice(DicePath)
-            except:
-                await ctx.send("@0x01FE#1244 your stupid bot is broken again")
+        await interaction.response.defer()
+        try:
+            Response = requests.get(attachment.url, timeout=60)
 
-            try:
-                await ctx.send(file=discord.File(DicePath))
-            except:
-                await ctx.send("The file was to big to send")
+            with open(f'../data/temp/temp.png', 'wb') as f:
+                f.write(Response.content)
 
-        os.remove(DicePath)
+
+            ImageToNumbers(f'../data/temp/temp.png', shades)
+
+            await interaction.followup.send(file=discord.File('../data/temp/temp_num.png'))
+
+            os.remove('../data/temp/temp.png')
+            os.remove('../data/temp/temp_num.png')
+
+        except Exception as err:
+            await interaction.followup.send(f"Error: {err}")
+            await log(str(err))
 
 
