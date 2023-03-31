@@ -5,4 +5,4 @@ Mel is my personal discord bot. Mel currently isn't meant for public use but the
 
 NOTE: This code isn't built for someone to run out of the box. You will have to configure all of the config files that do not come with the repo.
 
-Current Version: 1.0.11
+Current Version: 1.1.12

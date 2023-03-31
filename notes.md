@@ -7,6 +7,7 @@ removed it on 3/25/2023
 ## TODO
 
  [ ] bot tts still has windows filepaths, although i don't think any of the vc stuff works
+ [ ] w2x won't run on Linux. remove it from twitter command?
 
 
 ## Style

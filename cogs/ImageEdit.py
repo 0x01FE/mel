@@ -109,28 +109,19 @@ class ImageEdit(commands.Cog):
 
     @commands.command()
     async def twitter(self, ctx, *args):
+
         await log(f'{ctx.message.content} by {ctx.message.author}')
-        other_channels = {}
-        other_server = self.bot.get_guild(883156816249368576)
-        other_channels['other'] = other_server.get_channel(883157788421935136)
-        other_channels['fate'] = other_server.get_channel(883201954715697242)
-        other_channels['touhou'] = other_server.get_channel(883395217414291456)
-        other_channels['tower-defense-girls'] = other_server.get_channel(883202503888490528)
-        other_channels['guns'] = other_server.get_channel(883574520882012170)
-        extract_numbers = []
+
         tags = []
         trigger = False
         embed_colour = ctx.me.colour
         resup = False
-        sync = False
         spoiler_tag = False
         if len(args) > 1:
             if 'res_up' in args:
                 resup = True
             if 'spoiler' in args or 'sp' in args:
                 spoiler_tag = True
-            if 'sync' in args:
-                sync = True
             for arg in args:
                 if '[' in arg and ']' in arg:
                     extract_temp = arg.split(',')
@@ -197,87 +188,99 @@ class ImageEdit(commands.Cog):
             text+='\nTags:'
             for tag in tags:
                 text+='\n'+tag
+
         embed = discord.Embed(
             description = text,
             colour = embed_colour
         )
+
         embed.set_author(name=tweet.user.screen_name,icon_url=tweet.user.profile_image_url_https)
         embed.set_footer(text='Command requested by ' + str(ctx.message.author))
+
         if 'media' in tweet.entities:
             media = tweet.extended_entities['media']
-            ##print(json.dumps(media,sort_keys=True, indent=4))
+
             file_stats = None
             counter_a = 1
             for item in media:
-                if counter_a not in extract_numbers and extract_numbers 	!= []:
+                if counter_a not in extract_numbers and extract_numbers != []:
                     counter_a+=1
                     continue
+
                 if 'video_info' in item:
                     for variant in item['video_info']['variants']:
                         if variant['content_type'] == 'video/mp4':
                             media_url = variant['url']
                             break
+
                     wget.download(media_url)
+
                     if item['type'] == 'animated_gif':
                         clip = VideoFileClip(media_url.split('/')[-1])
                         clip.write_gif('output.gif')
+
                         if (os.stat('output.gif').st_size/(1024*1024)) < 8:
                             await ctx.send(file=discord.File('output.gif'))
-                            if sync:
-                                await other_channels[ctx.channel.name].send(file=discord.File('output.gif', spoiler = spoiler_tag),embed=embed)
+
                         else:
                             await ctx.send(content="GIF file was too big.",file=discord.File(media_url.split('/')[-1].split('.mp4')[0]+'.mp4'))
+
                         await ctx.send(embed=embed)
+
                         os.remove('output.gif')
                         os.remove(media_url.split('/')[-1].split('.mp4')[0]+'.mp4')
+
                     else:
                         if (os.stat(media_url.split('/')[-1].split('.mp4')[0]+'.mp4')).st_size/(1024*1024) <= 8:
                             await ctx.send(file=discord.File(media_url.split('/')[-1].split('.mp4')[0]+'.mp4', spoiler = spoiler_tag),embed=embed)
-                            if sync:
-                                await other_channels[ctx.channel.name].send(file=discord.File(media_url.split('/')[-1].split('.mp4')[0]+'.mp4', spoiler = spoiler_tag),embed=embed)
+
                         else:
                             await ctx.send('Video was too large.')
+
                         os.remove(media_url.split('/')[-1].split('.mp4')[0]+'.mp4')
+
                 elif item['type'] == 'photo':
                     media_url = item['media_url_https']
                     image = requests.get(media_url+':large')
+
                     if 200 == image.status_code:
                         with open(media_url.split('/')[-1], 'wb') as f:
                             f.write(image.content)
+
                     regular_file_name = media_url.split('/')[-1]
                     if resup:
                         res_file_name = media_url.split('/')[-1][:-4]+'_[L3][x2.00].png'
                         await self.bot.loop.run_in_executor(None, self.res_up_local, regular_file_name)
+
                         if (os.stat(res_file_name).st_size/(1024*1024)) > 8:
                             if item == media[-1]:
                                 await ctx.send(file=discord.File(regular_file_name, spoiler = spoiler_tag),embed=embed)
-                                if sync:
-                                    await other_channels[ctx.channel.name].send(file=discord.File(regular_file_name, spoiler = spoiler_tag),embed=embed)
+
                             else:
                                 await ctx.send(content="Res'd file was too big.",file=discord.File(regular_file_name, spoiler = spoiler_tag))
+
                             os.remove(regular_file_name)
                             os.remove(res_file_name)
+
                         else:
                             if item == media[len(extract_numbers)-1]:
                                 await ctx.send(file=discord.File(res_file_name, spoiler = spoiler_tag),embed=embed)
-                                if sync:
-                                    await other_channels[ctx.channel.name].send(file=discord.File(res_file_name, spoiler = spoiler_tag),embed=embed)
+
                             else:
                                 await ctx.send(file=discord.File(res_file_name, spoiler = spoiler_tag))
-                                if sync:
-                                    await other_channels[ctx.channel.name].send(file=discord.File(res_file_name, spoiler = spoiler_tag))
+
                             os.remove(res_file_name)
                             os.remove(regular_file_name)
+
                     else:
                         if item == media[len(extract_numbers)-1]:
                             await ctx.send(file=discord.File(regular_file_name, spoiler = spoiler_tag),embed=embed)
-                            if sync:
-                                await other_channels[ctx.channel.name].send(file=discord.File(regular_file_name, spoiler = spoiler_tag),embed=embed)
+
                         else:
                             await ctx.send(file=discord.File(regular_file_name, spoiler = spoiler_tag))
-                            if sync:
-                                await other_channels[ctx.channel.name].send(file=discord.File(regular_file_name, spoiler = spoiler_tag))
+
                         os.remove(regular_file_name)
+
                 counter_a+=1
             await ctx.message.delete()
 
@@ -291,7 +294,6 @@ class ImageEdit(commands.Cog):
         url : str,
         resup : Optional[bool],
         spoiler_tag : Optional[bool],
-        sync : Optional[bool],
         tags : Optional[str],
         extraction_numbers : Optional[str]
     ):
@@ -334,6 +336,7 @@ class ImageEdit(commands.Cog):
             text = (tweet.retweeted_status.full_text)
         except AttributeError:  # Not a Retweet
             text = (tweet.full_text)
+
         if tags: # prepare the tag text for the embeds
             text+='\nTags:'
             for tag in tags:
@@ -353,74 +356,81 @@ class ImageEdit(commands.Cog):
             ##print(json.dumps(media,sort_keys=True, indent=4)) (debug line)
             file_stats = None
             counter_a = 1
+
             for item in media:
                 if counter_a not in extraction_numbers and extraction_numbers:
                     counter_a+=1
                     continue
+
                 if 'video_info' in item:
                     for variant in item['video_info']['variants']:
                         if variant['content_type'] == 'video/mp4':
                             media_url = variant['url']
                             break
+
                     wget.download(media_url)
                     if item['type'] == 'animated_gif':
                         clip = VideoFileClip(media_url.split('/')[-1])
                         clip.write_gif('output.gif')
+
                         if (os.stat('output.gif').st_size/(1024*1024)) < 8:
                             await interaction.followup.send(file=discord.File('output.gif'), embed=embed)
-                            if sync:
-                                await self.other_channels[interaction.channel.name].send(file=discord.File('output.gif', spoiler = spoiler_tag),embed=embed)
+
                         else:
                             await interaction.followup.send(content="GIF file was too big.",file=discord.File(media_url.split('/')[-1].split('.mp4')[0]+'.mp4'),embed=embed)
+
                         os.remove('output.gif')
                         os.remove(media_url.split('/')[-1].split('.mp4')[0]+'.mp4')
+
                     else:
                         if (os.stat(media_url.split('/')[-1].split('.mp4')[0]+'.mp4')).st_size/(1024*1024) <= 8:
                             await interaction.followup.send(file=discord.File(media_url.split('/')[-1].split('.mp4')[0]+'.mp4', spoiler = spoiler_tag),embed=embed)
-                            if sync:
-                                await self.other_channels[interaction.channel.name].send(file=discord.File(media_url.split('/')[-1].split('.mp4')[0]+'.mp4', spoiler = spoiler_tag),embed=embed)
+
                         else:
                             await interaction.followup.send('Video was too large.')
+
                         os.remove(media_url.split('/')[-1].split('.mp4')[0]+'.mp4')
+
                 elif item['type'] == 'photo':
                     media_url = item['media_url_https']
                     image = requests.get(media_url+':large')
+
                     if 200 == image.status_code:
                         with open(media_url.split('/')[-1], 'wb') as f:
                             f.write(image.content)
+
                     regular_file_name = media_url.split('/')[-1]
                     if resup:
                         res_file_name = media_url.split('/')[-1][:-4]+'_[L3][x2.00].png'
                         await self.bot.loop.run_in_executor(None, self.res_up_local, regular_file_name)
+
                         if (os.stat(res_file_name).st_size/(1024*1024)) > 8:
                             if item == media[-1]:
                                 await interaction.followup.send(file=discord.File(regular_file_name, spoiler = spoiler_tag),embed=embed)
-                                if sync:
-                                    await self.other_channels[interaction.channel.name].send(file=discord.File(regular_file_name, spoiler = spoiler_tag),embed=embed)
+
                             else:
                                 await interaction.followup.send(content="Res'd file was too big.",file=discord.File(regular_file_name, spoiler = spoiler_tag))
+
                             os.remove(regular_file_name)
                             os.remove(res_file_name)
+
                         else:
                             if item == media[len(extraction_numbers)-1]:
                                 await interaction.followup.send(file=discord.File(res_file_name, spoiler = spoiler_tag),embed=embed)
-                                if sync:
-                                    await self.other_channels[interaction.channel.name].send(file=discord.File(res_file_name, spoiler = spoiler_tag),embed=embed)
+
                             else:
                                 await interaction.followup.send(file=discord.File(res_file_name, spoiler = spoiler_tag))
-                                if sync:
-                                    await self.other_channels[interaction.channel.name].send(file=discord.File(res_file_name, spoiler = spoiler_tag))
+
                             os.remove(res_file_name)
                             os.remove(regular_file_name)
+
                     else:
                         if item == media[len(extraction_numbers)-1]:
                             await interaction.followup.send(file=discord.File(regular_file_name, spoiler = spoiler_tag),embed=embed)
-                            if sync:
-                                await self.other_channels[interaction.channel.name].send(file=discord.File(regular_file_name, spoiler = spoiler_tag),embed=embed)
+
                         else:
                             await interaction.followup.send(file=discord.File(regular_file_name, spoiler = spoiler_tag))
-                            if sync:
-                                await self.other_channels[interaction.channel.name].send(file=discord.File(regular_file_name, spoiler = spoiler_tag))
+
                         os.remove(regular_file_name)
                 counter_a+=1
 
