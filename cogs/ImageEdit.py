@@ -306,10 +306,11 @@ class ImageEdit(commands.Cog):
         if tags:
             tags = tags.split(",")
 
+        # i don't think this works
         if extraction_numbers:
             extraction_numbers = extraction_numbers.split(",")
         else:
-            extraction_numbers = None
+            extraction_numbers = []
 
         if 't.co' in url:
             r = requests.get(url)
@@ -317,7 +318,7 @@ class ImageEdit(commands.Cog):
         else:
             tweet_url = url
 
-        # My current way of scanning for the tweet id, since I know status will come right before the id.
+        # My current way of scanning for the tweet id, since I know status will come right before the id. TODO : replace with regex?
         Trigger = False
         for item in tweet_url.split('/'):
             if Trigger:
@@ -329,8 +330,9 @@ class ImageEdit(commands.Cog):
 
         try:
             tweet = self.api.get_status(tweet_id, tweet_mode="extended")
-        except:
-            await interaction.followup.send_message("Error 404, Most likely an invalid link.")
+        except Exception as e:
+            await log(f"Error : {e}")
+            await interaction.followup.send(f"Error : {e}")
 
         try:
             text = (tweet.retweeted_status.full_text)
@@ -358,7 +360,7 @@ class ImageEdit(commands.Cog):
             counter_a = 1
 
             for item in media:
-                if counter_a not in extraction_numbers and extraction_numbers:
+                if counter_a not in extraction_numbers and extraction_numbers != []:
                     counter_a+=1
                     continue
 
@@ -415,21 +417,23 @@ class ImageEdit(commands.Cog):
                             os.remove(res_file_name)
 
                         else:
-                            if item == media[len(extraction_numbers)-1]:
-                                await interaction.followup.send(file=discord.File(res_file_name, spoiler = spoiler_tag),embed=embed)
+                            # This check is in place to only send the embed after all images have been sent.
+                            if item == media[len(extraction_numbers)-1] and (extraction_numbers != []):
+                                await interaction.followup.send(file=discord.File(res_file_name, spoiler = spoiler_tag))
 
                             else:
-                                await interaction.followup.send(file=discord.File(res_file_name, spoiler = spoiler_tag))
+                                await interaction.followup.send(file=discord.File(res_file_name, spoiler = spoiler_tag),embed=embed)
 
                             os.remove(res_file_name)
                             os.remove(regular_file_name)
 
                     else:
-                        if item == media[len(extraction_numbers)-1]:
-                            await interaction.followup.send(file=discord.File(regular_file_name, spoiler = spoiler_tag),embed=embed)
+                        # This check is in place to only send the embed after all images have been sent.
+                        if (item == media[len(extraction_numbers)-1]) and (extraction_numbers != []):
+                            await interaction.followup.send(file=discord.File(regular_file_name, spoiler = spoiler_tag))
 
                         else:
-                            await interaction.followup.send(file=discord.File(regular_file_name, spoiler = spoiler_tag))
+                            await interaction.followup.send(file=discord.File(regular_file_name, spoiler = spoiler_tag), embed=embed)
 
                         os.remove(regular_file_name)
                 counter_a+=1
