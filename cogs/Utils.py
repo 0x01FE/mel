@@ -1,12 +1,19 @@
-from datetime import datetime
+import discord
 from discord import app_commands
 from discord.ext import commands
+
+
 from typing import Optional
 from typing import Literal
 from enum import Enum
-import discord
+
+from datetime import datetime
+from urllib.parse import urlparse
+
 import os
 import json
+import requests
+
 
 
 
@@ -85,6 +92,7 @@ class Utils(commands.Cog):
 			await interaction.response.send_message(f"Sorry, \"{name}\" already exists as a tag.")
 
 
+
 	async def gettag(self, name, interaction : discord.Interaction):
 		with open(TAG_DATA_PATH + 'tags.json', 'r+') as f:
 			tag_index = json.loads(f.read())
@@ -93,6 +101,7 @@ class Utils(commands.Cog):
 			await interaction.response.send_message(file=discord.File(TAG_DATA_PATH + tag_index['images'][name]))
 		else:
 			await interaction.response.send_message(f'{name} tag was not found.')
+
 
 
 	async def deletetag(self, name, interaction : discord.Interaction):
@@ -107,6 +116,7 @@ class Utils(commands.Cog):
 				f.write(json.dumps(tag_index))
 
 		await interaction.response.send_message(f"{name} tag was deleted.")
+
 
 
 	async def listtags(self, interaction : discord.Interaction):
