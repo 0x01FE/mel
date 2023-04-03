@@ -35,8 +35,7 @@ class Utils(commands.Cog):
 	@app_commands.command()
 	async def ping(self, interaction: discord.Interaction):
 		await interaction.response.send_message("Pong!")
-		print("["+str(datetime.now().strftime("%H:%M"))+"] : pinged")
-
+		await log(f"Pinged by { interaction.user }")
 
 	@app_commands.command()
 	async def tag(self,
