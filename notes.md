@@ -8,6 +8,10 @@ removed it on 3/25/2023
 
  [ ] bot tts still has windows filepaths, although i don't think any of the vc stuff works
  [ ] w2x won't run on Linux. remove it from twitter command?
+ [ ] re-add dicer?
+ [ ] finish Leaderboard.py
+    [ ] Make leaderboard server specific.
+    [ ] Consider something besides json
 
 
 ## Style

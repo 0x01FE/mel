@@ -5,18 +5,22 @@ Touhou Leaderboard
 By 0x01FE#1244
 
 '''
-
-from threp import THReplay
+import discord
 from discord import app_commands
 from discord.ext import commands
+
 from typing import Optional
 from typing import Literal
 
-import discord
 import requests
 import os
+import json
+from threp import THReplay
 
-LEADERBOARD_DATA_PATH = './data/leaderboard/'
+
+LEADERBOARD_PATH = '../data/leaderboard/{}/' # Will be formatted with guild id to keep leaderboards server specific
+REPLAYS_PATH = '../data/leaderboard/'
+
 
 class Leaderboard(commands.Cog):
 
@@ -24,51 +28,72 @@ class Leaderboard(commands.Cog):
         self.bot = bot
 
     '''
-    Leaderboard file format (text) split by commas
-    Rank Name TotalScore Character Difficulty SlowRate Date ReplayFileName
-    0    1          2         3          4        6    7    8
+    Leaderboard file format (json)
+    Name TotalScore Character SlowRate Date ReplayFileName Submitter
+    1          2         3    4        5    6              7
+    Rank = index of run + 1
     '''
-    async def leaderboardAdd(self, interaction, game):
-        replay = THReplay(LEADERBOARD_DATA_PATH + 'replays/temp.rpy')
+    async def leaderboardAdd(self, interaction : discord.Interaction, game):
+        replay = THReplay(f'{ REPLAYS_PATH }temp.rpy')
 
         temp = replay.getBaseInfo().split(' ')
 
         character = temp[0] + ' ' + temp[1]
         difficulty = temp[2]
         rank = None
-        leaderboardPath = LEADERBOARD_DATA_PATH + game + '.txt'
+        leaderboardPath = f'{ LEADERBOARD_PATH.format(interaction.guild_id) }{ game }.json'
 
-        stageScores = replay.getStageScore()
         totalScore = 0
-        for score in stageScores:
+        for score in replay.getStageScore():
             totalScore += score
 
         slowRate = replay.getSlowRate()
         player = replay.getPlayer()
         date = replay.getDate()
+
         filename = player + date.split(" ")[0] + character + '.rpy'
-        Empty = False
+        submittedRun = {"player" : player, "totalScore" : totalScore, "character" : character, "slowRate" : slowRate, "data" : date, "filename" : filename, "submitter" : str(interaction.user)}
 
         if os.path.exists(leaderboardPath):
-            with open(LEADERBOARD_DATA_PATH + game + '.txt', 'r+') as f:
-                lines = f.read()
-                if lines == "":
-                    Empty = True
+            with open(leaderboardPath, 'r+') as f:
+                leaderboard = json.loads(f.read())
 
-            if Empty:
-                rank = 1
-                newScore = f'{rank}, {player}, {totalScore}, {character}, {difficulty}, {slowRate}, {date}, {filename}'
-                lines = {newScore}
+            if not difficulty in leaderboard.keys():
+                leaderboard[difficulty] = []
+                leaderboard[0] = submittedRun
+
             else:
-                with open(LEADERBOARD_DATA_PATH + game + '.txt', 'r+') as f:
-                    lines = f.readlines()
+                # Logic for looping through data and finding the place of newly added score
+                diffLeaderboard = leaderboard[difficulty]
 
-                i = 0
-                for line in lines:
-                    lines[i] = line.split(",")
-                    i+=1
 
-                # Logic for looping through finding the place of newly added score
+                for i in range(0,len(diffLeaderboard)):
+
+                    if diffLeaderboard[i]['totalScore'] > totalScore:
+
+                        # If we're at the end of the array then slap the run there
+                        if i-1 == len(diffLeaderboard):
+
+                            # Insert new run
+                            leaderboard[difficulty].insert(i, submittedRun)
+
+                            # Done adding new run
+                            break
+
+                        # If we're not at the end of the array BUT we're larger than the next run and smaller than the last, we belong here.
+                        elif diffLeaderboard[i+1]['totalScore'] < totalScore:
+
+                            # Insert new run
+                            leaderboard[difficulty].insert(i, submittedRun)
+
+
+
+
+
+
+
+
+
                 i = 0
                 for line in lines:
                     if (int(line[2]) > totalScore) and (int(lines[i+1][2]) < totalScore):
@@ -127,9 +152,9 @@ class Leaderboard(commands.Cog):
                 if game:
                     url = attachment.url
 
-                    # kind of just trusting the user to upload a rpy
+                    # TODO : add check to see if the user did upload a replay file
                     response = requests.get(url, timeout=60)
-                    tempReplayPath = LEADERBOARD_DATA_PATH + "replays/temp.rpy"
+                    tempReplayPath = LEADERBOARD_PATH + "replays/temp.rpy"
                     if not os.path.exists(tempReplayPath):
                         open(tempReplayPath, 'x')
                     file = open(tempReplayPath,'wb+')

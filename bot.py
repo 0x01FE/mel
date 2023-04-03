@@ -129,6 +129,10 @@ async def on_ready():
 		
 
 
+# Error Logging
+@bot.event
+async def on_error(e):
+	await Misc.log(f'Error : {e}')
 
 
 ## utility
