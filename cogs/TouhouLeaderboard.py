@@ -38,16 +38,32 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
     @app_commands.command(name='add')
     async def leaderboardAdd(self,
         interaction : discord.Interaction,
-        game : str
+        game : str,
+        attachment : discord.Attachment
     ):
+        url = attachment.url
+
+        # Format leaderboard path with guild id
+        leaderboardPath = f'{ LEADERBOARD_PATH.format(interaction.guild_id) }{ game }.json'
+
+        # TODO : add check to see if the user did upload a replay file
+        response = requests.get(url, timeout=60)
+        tempReplayPath = LEADERBOARD_PATH + "replays/temp.rpy"
+
+        if not os.path.exists(tempReplayPath):
+            open(tempReplayPath, 'x')
+
+        with open(tempReplayPath, 'wb+') as f:
+            f.write(response.content)
+
+        # Gathering info from the replay file
         replay = THReplay(f'{ REPLAYS_PATH }temp.rpy')
 
-        temp = replay.getBaseInfo().split(' ')
+        with replay.getBaseInfo().split(' ') as baseInfo:
+            character = f'{ baseInfo[0] } { baseInfo[1] }'
+            difficulty = baseInfo[2]
 
-        character = temp[0] + ' ' + temp[1]
-        difficulty = temp[2]
         rank = None
-        leaderboardPath = f'{ LEADERBOARD_PATH.format(interaction.guild_id) }{ game }.json'
 
         totalScore = 0
         for score in replay.getStageScore():
@@ -57,8 +73,11 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
         player = replay.getPlayer()
         date = replay.getDate()
 
+        # Preparing the filename that the replay will be saved as in the records and the json entry for the leaderboard
         filename = player + date.split(" ")[0] + character + '.rpy'
         submittedRun = {"player" : player, "totalScore" : totalScore, "character" : character, "slowRate" : slowRate, "data" : date, "filename" : filename, "submitter" : str(interaction.user)}
+
+        os.makedirs()
 
         if os.path.exists(leaderboardPath):
             with open(leaderboardPath, 'r+') as f:
@@ -72,28 +91,21 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
                 # Logic for looping through data and finding the place of newly added score
                 diffLeaderboard = leaderboard[difficulty]
 
+                for currentRunIndex in range(0, len(diffLeaderboard)):
 
-                for i in range(0,len(diffLeaderboard)):
-
-                    if diffLeaderboard[i]['totalScore'] > totalScore:
+                    if diffLeaderboard[currentRunIndex]['totalScore'] > totalScore:
 
                         # If we're at the end of the array then slap the run there
-                        if i-1 == len(diffLeaderboard):
-
-                            # Insert new run
-                            leaderboard[difficulty].insert(i, submittedRun)
-
-                            # Done adding new run
+                        if currentRunIndex-1 == len(diffLeaderboard):
+                            leaderboard[difficulty].insert(currentRunIndex, submittedRun)
                             break
 
                         # If we're not at the end of the array BUT we're larger than the next run and smaller than the last, we belong here.
-                        elif diffLeaderboard[i+1]['totalScore'] < totalScore:
+                        elif diffLeaderboard[currentRunIndex+1]['totalScore'] < totalScore:
+                            leaderboard[difficulty].insert(currentRunIndex, submittedRun)
 
-                            # Insert new run
-                            leaderboard[difficulty].insert(i, submittedRun)
-
-
-
+                    else:
+                        leaderboard[difficulty].insert(currentRunIndex, submittedRun)
 
 
 
@@ -137,54 +149,6 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
         await interaction.response.send_message(f"Highscore added in rank {rank}")
 
 
-
-
-
-
-
-
-
-
-    @app_commands.command()
-    async def leaderboard(self,
-        interaction : discord.Interaction,
-        command : Literal['add','view', 'get'],
-        game : Optional[str],
-        replayname : Optional[str],
-        attachment : Optional[discord.Attachment] = None
-    ):
-        if command == 'add':
-            if attachment:
-                if game:
-                    url = attachment.url
-
-                    # TODO : add check to see if the user did upload a replay file
-                    response = requests.get(url, timeout=60)
-                    tempReplayPath = LEADERBOARD_PATH + "replays/temp.rpy"
-                    if not os.path.exists(tempReplayPath):
-                        open(tempReplayPath, 'x')
-                    file = open(tempReplayPath,'wb+')
-                    file.write(response.content)
-                    file.close()
-
-                    await self.leaderboardAdd(interaction, game)
-                else:
-                    await interaction.response.send_message("Please select a game in the format of th#")
-
-            else:
-                await interaction.response.send_message("Please attach a replay file")
-        elif command == 'view':
-            if game:
-                print('',end='')
-            else:
-                await interaction.response.send_message("Please select a game in the format of th#")
-        elif command == 'get':
-            if replayname:
-                print('',end='')
-            else:
-                await interaction.response.send_message("Please select a replay file name.")
-        else:
-            await interaction.response.send_message(f"Error, command {command} was not recognised.")
 
 
 

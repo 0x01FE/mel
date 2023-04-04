@@ -16,8 +16,8 @@ class ImageTag(commands.GroupCog, name="tag"):
     def __init__(self, bot : commands.Bot) -> None:
         self.bot = bot
         super().__init__()
-    
-    
+
+
 
     @app_commands.command(name="create")
     async def tagCreate(self,
