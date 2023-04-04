@@ -21,10 +21,12 @@ from random import randint
 # COGS
 from cogs import Utils
 from cogs import ImageEdit
+from cogs import ImageTag
 from cogs import SpotifyUtils
 from cogs import Help
 from cogs import Leaderboard
 from cogs import Misc
+
 
 
 AR15FACE_FILE_PATH = 'data/assets/ar15face.png'
@@ -50,7 +52,7 @@ pic_ext = ['.jpg','.png','.jpeg','.webp']
 
 # Reading the config here and in the setup hook, can probably knock it down to one read
 with open(CONFIG_PATH, 'r') as f:
-	config = yaml.safe_load(f)
+    config = yaml.safe_load(f)
 
 
 token = config['bot']['token']
@@ -60,116 +62,119 @@ token = config['bot']['token']
 
 @bot.event
 async def setup_hook():
-	global other_channels
-	print('Logged in as')
-	print(bot.user.name)
-	print(bot.user.id)
-	print('------')
+    global other_channels
+    print('Logged in as')
+    print(bot.user.name)
+    print(bot.user.id)
+    print('------')
 
-	bot.first_ready = True
-	
-
-
-	# CONFIG 
-	with open(CONFIG_PATH,'r') as f:
-		bot.config = yaml.safe_load(f)
-
-	for value in bot.config['bot']['spotify']:
-		os.system(f"export {value}='{bot.config['bot']['spotify'][value]}'")
-		print(f'{value} set!')
-
-	bot.tenor_base_url = 'https://g.tenor.com/v1/gifs?ids={}&key=' + bot.config['bot']['tenor']['api_key']
+    bot.first_ready = True
 
 
-	# Load All Cogs
-	await bot.add_cog(Utils.Utils(bot))
-	await Misc.log("Cog Loaded: Utils")
 
-	await bot.add_cog(SpotifyUtils.SpotifyUtils(bot))
-	await Misc.log("Cog Loaded: SpotifyUtils")
+    # CONFIG
+    with open(CONFIG_PATH,'r') as f:
+        bot.config = yaml.safe_load(f)
 
-	await bot.add_cog(Help.Help(bot))
-	await Misc.log("Cog Loaded: Help")
+    for value in bot.config['bot']['spotify']:
+        os.system(f"export {value}='{bot.config['bot']['spotify'][value]}'")
+        print(f'{value} set!')
 
-	await bot.add_cog(Leaderboard.Leaderboard(bot))
-	await Misc.log("Cog Loaded: Leaderboard")
-
-	await bot.add_cog(Misc.Misc(bot))
-	await Misc.log("Cog Loaded: Misc")
+    bot.tenor_base_url = 'https://g.tenor.com/v1/gifs?ids={}&key=' + bot.config['bot']['tenor']['api_key']
 
 
-	if not bot.config['bot']['server']:
-		owner_response = input("Boot with ImageEdit (Y/N)? ").lower()
-	else:
-		owner_response = "y"
+    # Load All Cogs
+    await bot.add_cog(Utils.Utils(bot))
+    await Misc.log("Cog Loaded: Utils")
 
-	if owner_response == "y":
-		await bot.add_cog(ImageEdit.ImageEdit(bot))
-		await Misc.log("Cog Loaded: ImageEdit")
+    await bot.add_cog(SpotifyUtils.SpotifyUtils(bot))
+    await Misc.log("Cog Loaded: SpotifyUtils")
 
-	##vc_check.start()
-	status_change.start()
-	await Misc.log("Bot Pre-Initialized")
-		
+    await bot.add_cog(Help.Help(bot))
+    await Misc.log("Cog Loaded: Help")
+
+    await bot.add_cog(Leaderboard.Leaderboard(bot))
+    await Misc.log("Cog Loaded: Leaderboard")
+
+    await bot.add_cog(Misc.Misc(bot))
+    await Misc.log("Cog Loaded: Misc")
+
+    await bot.add_cog(ImageTag.ImageTag(bot))
+    await Misc.log("Cog Loaded: ImageTag")
+
+
+    if not bot.config['bot']['server']:
+        owner_response = input("Boot with ImageEdit (Y/N)? ").lower()
+    else:
+        owner_response = "y"
+
+    if owner_response == "y":
+        await bot.add_cog(ImageEdit.ImageEdit(bot))
+        await Misc.log("Cog Loaded: ImageEdit")
+
+    ##vc_check.start()
+    status_change.start()
+    await Misc.log("Bot Pre-Initialized")
+
 
 @bot.event
 async def on_ready():
-	# Load all app_commands for all guilds
+    # Load all app_commands for all guilds
 
-	if bot.first_ready:
+    if bot.first_ready:
 
-		for guild in bot.guilds:
-			guild_obj = discord.Object(id=guild.id)
-			bot.tree.copy_global_to(guild=guild_obj)
-			await bot.tree.sync(guild=guild_obj)
-			await Misc.log(f"Commands synced in : {guild.name}")
+        for guild in bot.guilds:
+            guild_obj = discord.Object(id=guild.id)
+            bot.tree.copy_global_to(guild=guild_obj)
+            await bot.tree.sync(guild=guild_obj)
+            await Misc.log(f"Commands synced in : {guild.name}")
 
-		await Misc.log("Bot Initialized")
-		bot.first_ready = False
-		
+        await Misc.log("Bot Initialized")
+        bot.first_ready = False
+
 
 
 # Error Logging
 @bot.event
 async def on_error(e):
-	await Misc.log(f'Error : {e}')
+    await Misc.log(f'Error : {e}')
 
 
 ## utility
-		
+
 @bot.command()
 async def set(ctx, *args):
-	if len(args) == 0:
-		embed = await help_set_embed(ctx.me.colour)
-		await ctx.send(embed=embed)
-	elif len(args) == 1:
-		if args[0] == 'tts':
-			embed = await help_tts_embed(ctx.me.colour)
-			await ctx.send(embed=embed)
-		else:
-			await ctx.send('Please refer to `-set`')
-	elif len(args) == 2:
-		if args[0] == 'tts':
-			if args[1] == 'speed':
-				await ctx.send("Missing argument (Speed int)")
-			elif args[1] == 'voice':
-				await ctx.send("Missing argument (Voice name)")
-			else:
-				await ctx.send("Please refer to `-set tts`")
-	elif len(args) == 3:
-		if args[0].lower() == 'tts':
-			if args[1].lower() == 'speed':
-				if args[2].isdecimal():
-					if int(args[2]) >= 100 and  int(args[2]) <= 300:
-						engine.setProperty('rate',int(args[2]))
-						await ctx.send("Successfully set speed to " +args[2]+ ".")
-			if args[1].lower() == 'voice':
-				if args[2].lower() == 'tim':
-					engine.setProperty('voice',voices[0].id)
-					await ctx.send("Successfully set voice to Tim.")
-				elif args[2].lower() == 'alice':
-					engine.setProperty('voice',voices[1].id)
-					await ctx.send("Successfully set voice to Alice.")
+    if len(args) == 0:
+        embed = await help_set_embed(ctx.me.colour)
+        await ctx.send(embed=embed)
+    elif len(args) == 1:
+        if args[0] == 'tts':
+            embed = await help_tts_embed(ctx.me.colour)
+            await ctx.send(embed=embed)
+        else:
+            await ctx.send('Please refer to `-set`')
+    elif len(args) == 2:
+        if args[0] == 'tts':
+            if args[1] == 'speed':
+                await ctx.send("Missing argument (Speed int)")
+            elif args[1] == 'voice':
+                await ctx.send("Missing argument (Voice name)")
+            else:
+                await ctx.send("Please refer to `-set tts`")
+    elif len(args) == 3:
+        if args[0].lower() == 'tts':
+            if args[1].lower() == 'speed':
+                if args[2].isdecimal():
+                    if int(args[2]) >= 100 and  int(args[2]) <= 300:
+                        engine.setProperty('rate',int(args[2]))
+                        await ctx.send("Successfully set speed to " +args[2]+ ".")
+            if args[1].lower() == 'voice':
+                if args[2].lower() == 'tim':
+                    engine.setProperty('voice',voices[0].id)
+                    await ctx.send("Successfully set voice to Tim.")
+                elif args[2].lower() == 'alice':
+                    engine.setProperty('voice',voices[1].id)
+                    await ctx.send("Successfully set voice to Alice.")
 
 
 
