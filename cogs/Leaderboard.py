@@ -22,10 +22,11 @@ LEADERBOARD_PATH = '../data/leaderboard/{}/' # Will be formatted with guild id t
 REPLAYS_PATH = '../data/leaderboard/'
 
 
-class Leaderboard(commands.Cog):
+class Leaderboard(commands.GroupCog, name='leaderboard'):
 
-    def __init__(self, bot):
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot = bot
+        super().__init__()
 
     '''
     Leaderboard file format (json)
@@ -33,7 +34,12 @@ class Leaderboard(commands.Cog):
     1          2         3    4        5    6              7
     Rank = index of run + 1
     '''
-    async def leaderboardAdd(self, interaction : discord.Interaction, game):
+
+    @app_commands.command(name='add')
+    async def leaderboardAdd(self,
+        interaction : discord.Interaction,
+        game : str
+    ):
         replay = THReplay(f'{ REPLAYS_PATH }temp.rpy')
 
         temp = replay.getBaseInfo().split(' ')
