@@ -50,12 +50,12 @@ vc = None
 pic_ext = ['.jpg','.png','.jpeg','.webp']
 
 
-# Reading the config here and in the setup hook, can probably knock it down to one read
+
 with open(CONFIG_PATH, 'r') as f:
-    config = yaml.safe_load(f)
+    bot.config = yaml.safe_load(f)
 
 
-token = config['bot']['token']
+token = bot.config['bot']['token']
 
 
 
@@ -70,11 +70,6 @@ async def setup_hook():
 
     bot.first_ready = True
 
-
-
-    # CONFIG
-    with open(CONFIG_PATH,'r') as f:
-        bot.config = yaml.safe_load(f)
 
     for value in bot.config['bot']['spotify']:
         os.system(f"export {value}='{bot.config['bot']['spotify'][value]}'")
