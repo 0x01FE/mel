@@ -9,17 +9,21 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+from threp import THReplay
+
 from typing import Optional
 from typing import Literal
 
 import requests
 import os
 import json
-from threp import THReplay
+from datetime import datetime
+
+from .Utils import log
 
 
 LEADERBOARD_DIR_PATH = '../data/leaderboard/{}/' # Will be formatted with guild id to keep leaderboards server specific
-REPLAYS_PATH = '../data/leaderboard/'
+REPLAYS_DIR_PATH = '../data/leaderboard/replays'
 TEMP_REPLAY_PATH = '../data/temp/temp.rpy'
 
 
@@ -29,12 +33,7 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
         self.bot = bot
         super().__init__()
 
-    '''
-    Leaderboard file format (json)
-    Name TotalScore Character SlowRate Date ReplayFileName Submitter
-    1          2         3    4        5    6              7
-    Rank = index of run + 1
-    '''
+
 
     @app_commands.command(name='add')
     async def leaderboardAdd(self,
@@ -63,7 +62,10 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
         difficulty = baseInfo[2]
 
         totalScore = 0
-        for score in replay.getStageScore():
+        stageScores = replay.getStageScore()
+        endStage = len(stageScores)
+
+        for score in stageScores:
             totalScore += score
 
         slowRate = replay.getSlowRate()
@@ -71,15 +73,28 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
         date = replay.getDate()
 
         # Preparing the filename that the replay will be saved as in the records and the json entry for the leaderboard
-        filename = player + date.split(" ")[0] + character + '.rpy'
-        submittedRun = {"player" : player, "totalScore" : totalScore, "character" : character, "slowRate" : slowRate, "data" : date, "filename" : filename, "submitter" : str(interaction.user)}
+        unixTimestamp = (datetime.now() - datetime(1970, 1, 1)).total_seconds()
+
+        filename = f'{ player }{ character }{ unixTimestamp }.rpy'
+
+        submittedRun = {
+            "player" : player,
+            "totalScore" : totalScore,
+            "character" : character,
+            "slowRate" : slowRate,
+            "data" : date,
+            "filename" : filename,
+            "submitter" : str(interaction.user),
+            "endStage" : endStage
+        }
 
         os.makedirs(LEADERBOARD_DIR_PATH.format(interaction.guild_id), exist_ok=True)
 
         if not os.path.exists(leaderboardPath):
-            open(leaderboardPath, 'x')
-
             leaderboard = {}
+
+            with open(leaderboardPath, 'w+') as f:
+                f.write(json.dumps(leaderboard))
 
         else:
             with open(leaderboardPath, 'r') as f:
@@ -87,8 +102,7 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
 
 
         if difficulty not in leaderboard.keys():
-            leaderboard[difficulty] = []
-            leaderboard[difficulty][0] = submittedRun
+            leaderboard[difficulty] = [submittedRun]
             rank = 1
 
         else:
@@ -101,24 +115,30 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
 
                     # If we're at the end of the array then slap the run there
                     if currentRunIndex+1 == len(diffLeaderboard):
-                        leaderboard[difficulty].insert(currentRunIndex, submittedRun)
+                        leaderboard[difficulty].append(submittedRun)
+                        rank = currentRunIndex+1
                         break
 
                     # If we're not at the end of the array BUT we're larger than the next run and smaller than the last, we belong here.
                     elif diffLeaderboard[currentRunIndex+1]['totalScore'] < totalScore:
                         leaderboard[difficulty].insert(currentRunIndex, submittedRun)
+                        rank = currentRunIndex+1
+                        break
 
-                    rank = currentRunIndex+1
 
                 else:
                     leaderboard[difficulty].insert(currentRunIndex, submittedRun)
                     rank = currentRunIndex+1
+                    break
 
+        os.makedirs(REPLAYS_DIR_PATH, exist_ok=True)
+        os.system(f"cp { TEMP_REPLAY_PATH } { REPLAYS_DIR_PATH }{ filename }")
 
         with open(leaderboardPath, 'w+') as f:
-            f.write(json.dumps(leaderboard))
+            f.write(json.dumps(leaderboard, indent=4))
 
-        await interaction.response.send_message(f"Highscore added in rank {rank}")
+        await log(f"New highscore added by { interaction.user } in { interaction.guild.name } in rank { rank }")
+        await interaction.response.send_message(f"Highscore added in rank { rank }")
 
 
 
