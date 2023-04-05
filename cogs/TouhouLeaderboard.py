@@ -18,8 +18,9 @@ import json
 from threp import THReplay
 
 
-LEADERBOARD_PATH = '../data/leaderboard/{}/' # Will be formatted with guild id to keep leaderboards server specific
+LEADERBOARD_DIR_PATH = '../data/leaderboard/{}/' # Will be formatted with guild id to keep leaderboards server specific
 REPLAYS_PATH = '../data/leaderboard/'
+TEMP_REPLAY_PATH = '../data/temp/temp.rpy'
 
 
 class Leaderboard(commands.GroupCog, name='leaderboard'):
@@ -44,26 +45,22 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
         url = attachment.url
 
         # Format leaderboard path with guild id
-        leaderboardPath = f'{ LEADERBOARD_PATH.format(interaction.guild_id) }{ game }.json'
+        leaderboardPath = f'{ LEADERBOARD_DIR_PATH.format(interaction.guild_id) }{ game }.json'
 
         # TODO : add check to see if the user did upload a replay file
         response = requests.get(url, timeout=60)
-        tempReplayPath = f'{ LEADERBOARD_PATH.format(interaction.guild_id) }replays/temp.rpy'
 
-        if not os.path.exists(tempReplayPath):
-            open(tempReplayPath, 'x')
+        os.makedirs('../data/temp', exist_ok=True)
 
-        with open(tempReplayPath, 'wb+') as f:
+        with open(TEMP_REPLAY_PATH, 'wb+') as f:
             f.write(response.content)
 
         # Gathering info from the replay file
-        replay = THReplay(f'{ REPLAYS_PATH }temp.rpy')
+        replay = THReplay(TEMP_REPLAY_PATH)
 
-        with replay.getBaseInfo().split(' ') as baseInfo:
-            character = f'{ baseInfo[0] } { baseInfo[1] }'
-            difficulty = baseInfo[2]
-
-        rank = None
+        baseInfo = replay.getBaseInfo().split(' ')
+        character = f'{ baseInfo[0] } { baseInfo[1] }'
+        difficulty = baseInfo[2]
 
         totalScore = 0
         for score in replay.getStageScore():
@@ -77,15 +74,22 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
         filename = player + date.split(" ")[0] + character + '.rpy'
         submittedRun = {"player" : player, "totalScore" : totalScore, "character" : character, "slowRate" : slowRate, "data" : date, "filename" : filename, "submitter" : str(interaction.user)}
 
-        os.makedirs(leaderboardPath, exist_ok=True)
+        os.makedirs(LEADERBOARD_DIR_PATH.format(interaction.guild_id), exist_ok=True)
 
+        if not os.path.exists(leaderboardPath):
+            open(leaderboardPath, 'x')
 
-        with open(leaderboardPath, 'r+') as f:
-            leaderboard = json.loads(f.read())
+            leaderboard = {}
+
+        else:
+            with open(leaderboardPath, 'r') as f:
+                leaderboard = json.loads(f.read())
+
 
         if difficulty not in leaderboard.keys():
             leaderboard[difficulty] = []
-            leaderboard[0] = submittedRun
+            leaderboard[difficulty][0] = submittedRun
+            rank = 1
 
         else:
             # Logic for looping through data and finding the place of newly added score
@@ -96,7 +100,7 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
                 if diffLeaderboard[currentRunIndex]['totalScore'] > totalScore:
 
                     # If we're at the end of the array then slap the run there
-                    if currentRunIndex-1 == len(diffLeaderboard):
+                    if currentRunIndex+1 == len(diffLeaderboard):
                         leaderboard[difficulty].insert(currentRunIndex, submittedRun)
                         break
 
@@ -104,8 +108,11 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
                     elif diffLeaderboard[currentRunIndex+1]['totalScore'] < totalScore:
                         leaderboard[difficulty].insert(currentRunIndex, submittedRun)
 
+                    rank = currentRunIndex+1
+
                 else:
                     leaderboard[difficulty].insert(currentRunIndex, submittedRun)
+                    rank = currentRunIndex+1
 
 
         with open(leaderboardPath, 'w+') as f:
