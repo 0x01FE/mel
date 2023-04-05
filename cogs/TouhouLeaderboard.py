@@ -48,7 +48,7 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
 
         # TODO : add check to see if the user did upload a replay file
         response = requests.get(url, timeout=60)
-        tempReplayPath = LEADERBOARD_PATH + "replays/temp.rpy"
+        tempReplayPath = f'{ LEADERBOARD_PATH.format(interaction.guild_id) }replays/temp.rpy'
 
         if not os.path.exists(tempReplayPath):
             open(tempReplayPath, 'x')
