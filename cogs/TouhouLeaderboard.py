@@ -77,74 +77,39 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
         filename = player + date.split(" ")[0] + character + '.rpy'
         submittedRun = {"player" : player, "totalScore" : totalScore, "character" : character, "slowRate" : slowRate, "data" : date, "filename" : filename, "submitter" : str(interaction.user)}
 
-        os.makedirs()
+        os.makedirs(leaderboardPath, exist_ok=True)
 
-        if os.path.exists(leaderboardPath):
-            with open(leaderboardPath, 'r+') as f:
-                leaderboard = json.loads(f.read())
 
-            if not difficulty in leaderboard.keys():
-                leaderboard[difficulty] = []
-                leaderboard[0] = submittedRun
+        with open(leaderboardPath, 'r+') as f:
+            leaderboard = json.loads(f.read())
 
-            else:
-                # Logic for looping through data and finding the place of newly added score
-                diffLeaderboard = leaderboard[difficulty]
+        if difficulty not in leaderboard.keys():
+            leaderboard[difficulty] = []
+            leaderboard[0] = submittedRun
 
-                for currentRunIndex in range(0, len(diffLeaderboard)):
+        else:
+            # Logic for looping through data and finding the place of newly added score
+            diffLeaderboard = leaderboard[difficulty]
 
-                    if diffLeaderboard[currentRunIndex]['totalScore'] > totalScore:
+            for currentRunIndex in range(0, len(diffLeaderboard)):
 
-                        # If we're at the end of the array then slap the run there
-                        if currentRunIndex-1 == len(diffLeaderboard):
-                            leaderboard[difficulty].insert(currentRunIndex, submittedRun)
-                            break
+                if diffLeaderboard[currentRunIndex]['totalScore'] > totalScore:
 
-                        # If we're not at the end of the array BUT we're larger than the next run and smaller than the last, we belong here.
-                        elif diffLeaderboard[currentRunIndex+1]['totalScore'] < totalScore:
-                            leaderboard[difficulty].insert(currentRunIndex, submittedRun)
+                    # If we're at the end of the array then slap the run there
+                    if currentRunIndex-1 == len(diffLeaderboard):
+                        leaderboard[difficulty].insert(currentRunIndex, submittedRun)
+                        break
 
-                    else:
+                    # If we're not at the end of the array BUT we're larger than the next run and smaller than the last, we belong here.
+                    elif diffLeaderboard[currentRunIndex+1]['totalScore'] < totalScore:
                         leaderboard[difficulty].insert(currentRunIndex, submittedRun)
 
+                else:
+                    leaderboard[difficulty].insert(currentRunIndex, submittedRun)
 
-
-
-
-
-                i = 0
-                for line in lines:
-                    if (int(line[2]) > totalScore) and (int(lines[i+1][2]) < totalScore):
-                        rank = int(line[0]) + 1
-
-                        # Loop through ranks bellow yourself and increase them by 1
-                        a = 0
-                        startRankIncrease = False
-                        for line2 in lines:
-                            if line2 == line:
-                                startRankIncrease = True
-                            if startRankIncrease:
-                                lines[a][0] = int(line2[0]) + 1
-                            a+=1
-
-                        newScore = f'{rank}, {player}, {totalScore}, {character}, {difficulty}, {slowRate}, {date}, {filename}'
-                        lines.insert(i, newScore)
-                    # change if you want to make pages for the leaderboard
-                    if int(line[0]) > 10:
-                        await interaction.response.send_message("You didn't make the top ten, L")
-                        break
-                    i+=1
-        else:
-            rank = 1
-            newScore = f'{rank}, {player}, {totalScore}, {character}, {difficulty}, {slowRate}, {date}, {filename}'
-            lines = {newScore}
-
-        writeString = ''
-        for line in lines:
-            writeString += (line + '\n')
 
         with open(leaderboardPath, 'w+') as f:
-            f.write(writeString)
+            f.write(json.dumps(leaderboard))
 
         await interaction.response.send_message(f"Highscore added in rank {rank}")
 
