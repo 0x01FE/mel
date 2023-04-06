@@ -183,10 +183,10 @@ async def on_message(message : discord.Message):
     with open(ODEN_PATH, 'r') as f:
         words = json.loads(f.read())['words']
 
-    MessageWords = message.content.lower().split(' ')
+    MessageWords = message.content.lower()
 
     for word in words:
-        if word.split(' ') in MessageWords:
+        if word in MessageWords:
             if message.author.name == '3rror8' and message.author.discriminator == '6155':
                 await message.channel.send(file=discord.File(AR15FACE_FILE_PATH))
                 break
