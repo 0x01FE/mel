@@ -18,11 +18,13 @@ import requests
 import os
 import json
 from datetime import datetime
+from random import randint
 
 from .Utils import log
 
 
 LEADERBOARD_DIR_PATH = '../data/leaderboard/{}/' # Will be formatted with guild id to keep leaderboards server specific
+GLOBAL_LEADERBOARD_PATH = '../data/leaderboard/global-leaderboard.json'
 REPLAYS_DIR_PATH = '../data/leaderboard/replays'
 TEMP_REPLAY_PATH = '../data/temp/temp.rpy'
 
@@ -90,6 +92,20 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
 
         os.makedirs(LEADERBOARD_DIR_PATH.format(interaction.guild_id), exist_ok=True)
 
+
+        os.makedirs(REPLAYS_DIR_PATH, exist_ok=True)
+        os.system(f"cp { TEMP_REPLAY_PATH } { REPLAYS_DIR_PATH }{ filename }")
+
+        serverRank = await self.addScoreToJson(leaderboardPath, difficulty, submittedRun)
+        globalRank = await self.addScoreToJson(GLOBAL_LEADERBOARD_PATH, difficulty, submittedRun)
+
+        await log(f"New highscore added by { interaction.user } in { interaction.guild.name }")
+        await interaction.response.send_message(f"Highscore added in rank { serverRank } for { interaction.guild.name }\nGlobal Rank : { globalRank }")
+
+
+
+    async def addScoreToJson(self, leaderboardPath, difficulty, submittedRun) -> int:
+
         if not os.path.exists(leaderboardPath):
             leaderboard = {}
 
@@ -111,7 +127,7 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
 
             for currentRunIndex in range(0, len(diffLeaderboard)):
 
-                if diffLeaderboard[currentRunIndex]['totalScore'] > totalScore:
+                if diffLeaderboard[currentRunIndex]['totalScore'] > submittedRun['totalScore']:
 
                     # If we're at the end of the array then slap the run there
                     if currentRunIndex+1 == len(diffLeaderboard):
@@ -120,7 +136,7 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
                         break
 
                     # If we're not at the end of the array BUT we're larger than the next run and smaller than the last, we belong here.
-                    elif diffLeaderboard[currentRunIndex+1]['totalScore'] < totalScore:
+                    elif diffLeaderboard[currentRunIndex+1]['totalScore'] < submittedRun['totalScore']:
                         leaderboard[difficulty].insert(currentRunIndex, submittedRun)
                         rank = currentRunIndex+1
                         break
@@ -131,14 +147,58 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
                     rank = currentRunIndex+1
                     break
 
-        os.makedirs(REPLAYS_DIR_PATH, exist_ok=True)
-        os.system(f"cp { TEMP_REPLAY_PATH } { REPLAYS_DIR_PATH }{ filename }")
-
         with open(leaderboardPath, 'w+') as f:
             f.write(json.dumps(leaderboard, indent=4))
 
-        await log(f"New highscore added by { interaction.user } in { interaction.guild.name } in rank { rank }")
-        await interaction.response.send_message(f"Highscore added in rank { rank }")
+        return rank
+
+
+
+    @app_commands.command(name='view')
+    async def leaderboardView(self,
+        interaction : discord.Interaction,
+        game : str,
+        difficulty : Literal["easy", "normal", "hard", "lunatic"],
+        globalview : Optional[bool],
+        page : Optional[int]
+    ):
+        if globalview:
+
+            with open(GLOBAL_LEADERBOARD_PATH, 'r') as f:
+                leaderboard = json.loads(f.read())
+
+            embed = discord.Embed(title=f'Global { game } Leaderboard')
+
+        else:
+            try:
+                with open(f'{ LEADERBOARD_DIR_PATH.format(interaction.guild_id) }{ game }.json', 'r') as f:
+                    leaderboard = json.loads(f.read())
+
+            except FileNotFoundError:
+                await interaction.response.send_message("Leaderboard not file, if think this was an error, I give you permission ping/dm 0x01FE#1244 until he responds.")
+
+            embed = discord.Embed(title=f'{ interaction.guild.name } { game } Leaderboard')
+
+        # Each page number just offsets by ten when reading the json
+        if not page:
+            page = 1
+
+
+        embed.color = randint(0, 0xFFFFFF)
+        embed.description = f'Difficulty : { difficulty }'
+
+        leaderboardContent = ''
+        for run in range(0+((page-1)*10), 10+((page-1)*10)):
+
+            for runInfo in leaderboard[difficulty][run]:
+                entry = f'{}. { runInfo["player"] }, Score: { runInfo["totalScore"] }, '
+
+
+            leaderboardContent = leaderboardContent +
+
+        embed.add_field(name=f'Leaderboard Page { page }', value=)
+
+
 
 
 
