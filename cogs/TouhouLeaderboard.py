@@ -24,7 +24,7 @@ from .Utils import log
 
 
 LEADERBOARD_DIR_PATH = '../data/leaderboard/{}/' # Will be formatted with guild id to keep leaderboards server specific
-GLOBAL_LEADERBOARD_PATH = '../data/leaderboard/global-leaderboard.json'
+GLOBAL_LEADERBOARD_PATH = '../data/leaderboard/global/'
 REPLAYS_DIR_PATH = '../data/leaderboard/replays'
 TEMP_REPLAY_PATH = '../data/temp/temp.rpy'
 
@@ -47,6 +47,7 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
 
         # Format leaderboard path with guild id
         leaderboardPath = f'{ LEADERBOARD_DIR_PATH.format(interaction.guild_id) }{ game }.json'
+        globalPath = f'{ GLOBAL_LEADERBOARD_PATH }{ game }.json'
 
         # TODO : add check to see if the user did upload a replay file
         response = requests.get(url, timeout=60)
@@ -91,13 +92,14 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
         }
 
         os.makedirs(LEADERBOARD_DIR_PATH.format(interaction.guild_id), exist_ok=True)
+        os.makedirs(GLOBAL_LEADERBOARD_PATH, exist_ok=True)
 
 
         os.makedirs(REPLAYS_DIR_PATH, exist_ok=True)
         os.system(f"cp { TEMP_REPLAY_PATH } { REPLAYS_DIR_PATH }{ filename }")
 
         serverRank = await self.addScoreToJson(leaderboardPath, difficulty, submittedRun)
-        globalRank = await self.addScoreToJson(GLOBAL_LEADERBOARD_PATH, difficulty, submittedRun)
+        globalRank = await self.addScoreToJson(globalPath, difficulty, submittedRun)
 
         await log(f"New highscore added by { interaction.user } in { interaction.guild.name }")
         await interaction.response.send_message(f"Highscore added in rank { serverRank } for { interaction.guild.name }\nGlobal Rank : { globalRank }")
@@ -158,13 +160,13 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
     async def leaderboardView(self,
         interaction : discord.Interaction,
         game : str,
-        difficulty : Literal["easy", "normal", "hard", "lunatic"],
+        difficulty : Literal["Easy", "Normal", "Hard", "Lunatic"],
         globalview : Optional[bool],
         page : Optional[int]
     ):
         if globalview:
 
-            with open(GLOBAL_LEADERBOARD_PATH, 'r') as f:
+            with open(f'{ GLOBAL_LEADERBOARD_PATH }{ game }.json', 'r') as f:
                 leaderboard = json.loads(f.read())
 
             embed = discord.Embed(title=f'Global { game } Leaderboard')
@@ -188,15 +190,33 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
         embed.description = f'Difficulty : { difficulty }'
 
         leaderboardContent = ''
-        for run in range(0+((page-1)*10), 10+((page-1)*10)):
 
-            for runInfo in leaderboard[difficulty][run]:
-                entry = f'{}. { runInfo["player"] }, Score: { runInfo["totalScore"] }, '
+        if len(leaderboard[difficulty]) < 10:
+            end = len(leaderboard[difficulty])
+            start = 0
+
+        else:
+            end = 10+((page-1)*10)
+            start = ((page-1)*10)
+
+        for run in range(start, end):
+
+            runInfo = leaderboard[difficulty][run]
+
+            entry = '{}. {}, {}, Score: {}, Slow Rate: {}, {}'.format(run+1,
+                runInfo['player'],
+                runInfo['character'],
+                runInfo['totalScore'],
+                runInfo['slowRate'],
+                runInfo['endStage']
+            )
 
 
-            leaderboardContent = leaderboardContent +
+            leaderboardContent = leaderboardContent + entry + '\n'
 
-        embed.add_field(name=f'Leaderboard Page { page }', value=)
+        embed.add_field(name=f'Leaderboard Page { page }', value=leaderboardContent)
+
+        await interaction.response.send_message(embed=embed)
 
 
 
