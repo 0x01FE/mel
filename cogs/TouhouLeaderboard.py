@@ -212,7 +212,8 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
 
             runInfo = leaderboard[difficulty][run]
 
-            entry = '{}. {}, {}, Score: {}, Slow Rate: {}, End Stage: {}'.format(run+1,
+            entry = '{}. {}, {}, Score: {}, Slow Rate: {}, End Stage: {}'.format(
+                run+1,
                 runInfo['player'],
                 runInfo['character'],
                 runInfo['totalScore'],
