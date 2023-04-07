@@ -172,12 +172,13 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
         globalview : Optional[bool],
         page : Optional[int]
     ):
+        gameFull = await self.gameShortToGameFull(game)
         if globalview:
 
             with open(f'{ GLOBAL_LEADERBOARD_PATH }{ game }.json', 'r') as f:
                 leaderboard = json.loads(f.read())
 
-            embed = discord.Embed(title=f'Global { game } Leaderboard')
+            embed = discord.Embed(title=f'Global { gameFull } Leaderboard')
 
         else:
             try:
@@ -187,7 +188,7 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
             except FileNotFoundError:
                 await interaction.response.send_message("Leaderboard not file, if think this was an error, I give you permission ping/dm 0x01FE#1244 until he responds.")
 
-            embed = discord.Embed(title=f'{ interaction.guild.name } { game } Leaderboard')
+            embed = discord.Embed(title=f'{ interaction.guild.name } | { gameFull } Leaderboard')
 
         # Each page number just offsets by ten when reading the json
         if not page:
@@ -227,10 +228,42 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
         await interaction.response.send_message(embed=embed)
 
 
-
-
-
-
+    # Yes I know i could use a match case but i have the bot on a python 3.10 image and i'm lazy
+    async def gameShortToGameFull(self, gameShort):
+        if gameShort == 'th1':
+            return "Touhou 1 : Highly Responsive to Prayers"
+        elif gameShort == 'th2':
+            return "Touhou 2 : Story of Eastern Wonderland"
+        elif gameShort == 'th3':
+            return "Touhou 3 : Phantasmagoria of Dim.Dream"
+        elif gameShort == 'th4':
+            return "Touhou 4 : Lotus Land Story"
+        elif gameShort == 'th5':
+            return "Touhou 5 : Mystic Square"
+        elif gameShort == 'th6':
+            return "Touhou 6 : Embodiment of Scarlet Devil"
+        elif gameShort == 'th7':
+            return "Touhou 7 : Perfect Cherry Blossom"
+        elif gameShort == 'th8':
+            return "Touhou 8 : Imperishable Night"
+        elif gameShort == 'th10':
+            return "Touhou 10 : Mountain of Faith"
+        elif gameShort == 'th11':
+            return "Touhou 11 : Subterranean Animism"
+        elif gameShort == 'th12':
+            return "Touhou 12 : Undefined Fantastic Object"
+        elif gameShort == 'th13':
+            return "Touhou 13 : Ten Desires"
+        elif gameShort == 'th14':
+            return "Touhou 14 : Double Dealing Character"
+        elif gameShort == 'th15':
+            return "Touhou 15 : Legacy of Lunatic Kingdom"
+        elif gameShort == 'th16':
+            return "Touhou 16 : Hidden Star in Four Seasons"
+        elif gameShort == 'th17':
+            return "Touhou 17 : Wily Beast and Weakest Creature"
+        elif gameShort == 'th18':
+            return "Touhou 18 : Unconnected Marketeers"
 
 
 
