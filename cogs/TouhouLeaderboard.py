@@ -17,6 +17,8 @@ from typing import Literal
 import requests
 import os
 import json
+from glob import glob
+from filecmp import cmp
 from datetime import datetime
 from random import randint
 
@@ -57,6 +59,14 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
         with open(TEMP_REPLAY_PATH, 'wb+') as f:
             f.write(response.content)
 
+
+        replays = glob(REPLAYS_DIR_PATH)
+        for replay in replays:
+            if cmp(TEMP_REPLAY_PATH, TEMP_REPLAY_PATH):
+                await interaction.response.send_message("That replay has already been uploaded.")
+                return
+
+
         # Gathering info from the replay file
         replay = THReplay(TEMP_REPLAY_PATH)
 
@@ -64,12 +74,10 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
         character = f'{ baseInfo[0] } { baseInfo[1] }'
         difficulty = baseInfo[2]
 
-        totalScore = 0
         stageScores = replay.getStageScore()
         endStage = len(stageScores)
+        totalScore = stageScores[-1]
 
-        for score in stageScores:
-            totalScore += score
 
         slowRate = replay.getSlowRate()
         player = replay.getPlayer()
