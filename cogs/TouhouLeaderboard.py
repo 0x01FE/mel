@@ -27,7 +27,7 @@ from .Utils import log
 
 LEADERBOARD_DIR_PATH = '../data/leaderboard/{}/' # Will be formatted with guild id to keep leaderboards server specific
 GLOBAL_LEADERBOARD_PATH = '../data/leaderboard/global/'
-REPLAYS_DIR_PATH = '../data/leaderboard/replays'
+REPLAYS_DIR_PATH = '../data/leaderboard/replays/'
 TEMP_REPLAY_PATH = '../data/temp/temp.rpy'
 
 
@@ -62,7 +62,7 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
 
         replays = glob(REPLAYS_DIR_PATH)
         for replay in replays:
-            if cmp(TEMP_REPLAY_PATH, TEMP_REPLAY_PATH):
+            if cmp(TEMP_REPLAY_PATH, replay):
                 await interaction.response.send_message("That replay has already been uploaded.")
                 return
 
@@ -86,7 +86,7 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
         # Preparing the filename that the replay will be saved as in the records and the json entry for the leaderboard
         unixTimestamp = (datetime.now() - datetime(1970, 1, 1)).total_seconds()
 
-        filename = f'{ player }{ character }{ unixTimestamp }.rpy'
+        filename = f'{ player }{ character.replace(" ", "-") }{ unixTimestamp }.rpy'
 
         submittedRun = {
             "player" : player,
