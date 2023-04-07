@@ -60,7 +60,7 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
             f.write(response.content)
 
 
-        replays = glob(REPLAYS_DIR_PATH)
+        replays = glob(REPLAYS_DIR_PATH+"*")
         for replay in replays:
             if cmp(TEMP_REPLAY_PATH, replay):
                 await interaction.response.send_message("That replay has already been uploaded.")
@@ -84,9 +84,9 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
         date = replay.getDate()
 
         # Preparing the filename that the replay will be saved as in the records and the json entry for the leaderboard
-        unixTimestamp = (datetime.now() - datetime(1970, 1, 1)).total_seconds()
+        fileNumber = len(replays)+1
 
-        filename = f'{ player }{ character.replace(" ", "-") }{ unixTimestamp }.rpy'
+        filename = f'{ player }{ character.replace(" ", "-") }{ fileNumber }.rpy'
 
         submittedRun = {
             "player" : player,
