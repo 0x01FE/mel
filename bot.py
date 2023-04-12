@@ -135,6 +135,8 @@ async def on_error(e):
     await Misc.log(f'Error : {e}')
 
 
+
+
 ## utility
 
 @bot.command()
@@ -265,17 +267,19 @@ async def before_vc_check():
 async def status_change():
 
     with open(STATUS_LIST_PATH, "r") as f:
-        status_list = json.load(f)
+        StatusList = json.load(f)
 
-    Chance = randint(1,2)
+    TotalStatusListLength = len(StatusList['Listening']) + len(StatusList['Playing'])
 
-    if Chance == 1:
-        Chance = randint(0,len(status_list['Listening'])-1)
-        await bot.change_presence(status=discord.Status.online, activity=discord.Activity(type=discord.ActivityType.listening, name=status_list['Listening'][Chance]))
+    Chance = randint(0, TotalStatusListLength)
 
-    elif Chance == 2:
-        Chance = randint(0,len(status_list['Playing'])-1)
-        await bot.change_presence(status=discord.Status.online, activity=discord.Activity(type=discord.ActivityType.playing, name=status_list['Playing'][Chance]))
+    if Chance >= 0 and Chance < len(StatusList['Listening']):
+        await bot.change_presence(status=discord.Status.online, activity=discord.Activity(type=discord.ActivityType.listening, name=StatusList['Listening'][Chance]))
+
+    elif Chance > len(StatusList['Listening']) and Chance <= TotalStatusListLength:
+        await bot.change_presence(status=discord.Status.online, activity=discord.Activity(type=discord.ActivityType.playing, name=StatusList['Playing'][Chance-len(StatusList['Listening'])]))
+
+
 
 '''
 Explanation of why it must wait until the bot is ready.
