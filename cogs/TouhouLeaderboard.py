@@ -30,6 +30,8 @@ GLOBAL_LEADERBOARD_PATH = '../data/leaderboard/global/'
 REPLAYS_DIR_PATH = '../data/leaderboard/replays/'
 TEMP_REPLAY_PATH = '../data/temp/temp.rpy'
 
+TOUHOU_GAME_ICON_PATH = '../data/assets/th-icon-links.json'
+
 
 class Leaderboard(commands.GroupCog, name='leaderboard'):
 
@@ -110,7 +112,7 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
         globalRank = await self.addScoreToJson(globalPath, difficulty, submittedRun)
 
         await log(f"New highscore added by { interaction.user } in { interaction.guild.name }")
-        await interaction.response.send_message(f"Highscore added in rank { serverRank } for { interaction.guild.name }\nGlobal Rank : { globalRank }")
+        await interaction.response.send_message(f"Highscore added in rank { serverRank } for { interaction.guild.name }\nGlobal Rank : { globalRank }", ephemeral=True)
 
 
 
@@ -226,7 +228,13 @@ class Leaderboard(commands.GroupCog, name='leaderboard'):
 
         embed.add_field(name=f'Leaderboard Page { page }', value=leaderboardContent)
 
+        with open(TOUHOU_GAME_ICON_PATH, 'r') as f:
+            iconLink = json.loads(f.read())[game]
+
+        embed.set_thumbnail(url=iconLink)
+
         await interaction.response.send_message(embed=embed)
+
 
 
     # Yes I know i could use a match case but i have the bot on a python 3.10 image and i'm lazy

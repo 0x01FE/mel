@@ -11,3 +11,5 @@ data/assets/oden.json
 data/assets/tagged_images/tags.json
 data/leaderboard/*.json
 data/leaderboard/replays/*
+
+data/logs/*
