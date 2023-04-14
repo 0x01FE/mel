@@ -29,8 +29,8 @@ from .Numbers import ImageToNumbers
 
 THUMBS_UP = u"\U0001F44D"
 locations = {
-	'gifs':'gifs\\',
-	'downloads':'D:\\bot downloads\\'
+    'gifs':'gifs\\',
+    'downloads':'D:\\bot downloads\\'
 }
 
 TEMP_DATA_PATH = '../data/temp'

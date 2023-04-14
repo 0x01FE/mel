@@ -80,22 +80,16 @@ async def setup_hook():
 
     # Load All Cogs
     await bot.add_cog(Utils.Utils(bot))
-    await Misc.log("Cog Loaded: Utils")
 
     await bot.add_cog(SpotifyUtils.SpotifyUtils(bot))
-    await Misc.log("Cog Loaded: SpotifyUtils")
 
     await bot.add_cog(Help.Help(bot))
-    await Misc.log("Cog Loaded: Help")
 
     await bot.add_cog(TouhouLeaderboard.Leaderboard(bot))
-    await Misc.log("Cog Loaded: Leaderboard")
 
     await bot.add_cog(Misc.Misc(bot))
-    await Misc.log("Cog Loaded: Misc")
 
     await bot.add_cog(ImageTag.ImageTag(bot))
-    await Misc.log("Cog Loaded: ImageTag")
 
 
     if not bot.config['bot']['server']:
@@ -105,7 +99,6 @@ async def setup_hook():
 
     if owner_response == "y":
         await bot.add_cog(ImageEdit.ImageEdit(bot))
-        await Misc.log("Cog Loaded: ImageEdit")
 
     ##vc_check.start()
     status_change.start()
@@ -276,7 +269,7 @@ async def status_change():
     if Chance >= 0 and Chance < len(StatusList['Listening']):
         await bot.change_presence(status=discord.Status.online, activity=discord.Activity(type=discord.ActivityType.listening, name=StatusList['Listening'][Chance]))
 
-    elif Chance > len(StatusList['Listening']) and Chance <= TotalStatusListLength:
+    elif Chance > len(StatusList['Listening']) and Chance < TotalStatusListLength:
         await bot.change_presence(status=discord.Status.online, activity=discord.Activity(type=discord.ActivityType.playing, name=StatusList['Playing'][Chance-len(StatusList['Listening'])]))
 
 
