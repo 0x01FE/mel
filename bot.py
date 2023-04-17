@@ -180,11 +180,12 @@ async def on_message(message : discord.Message):
 
     MessageWords = message.content.lower()
 
-    for word in words:
-        if word in MessageWords:
-            if message.author.name == '3rror8' and message.author.discriminator == '6155':
-                await message.channel.send(file=discord.File(AR15FACE_FILE_PATH))
-                break
+    for TriggerWord in words:
+        for word in MessageWords:
+            if word == TriggerWord:
+                if message.author.name == '3rror8' and message.author.discriminator == '6155':
+                    await message.channel.send(file=discord.File(AR15FACE_FILE_PATH))
+                    break
 
     if message.content:
         if "so dumb" in message.content.lower():
