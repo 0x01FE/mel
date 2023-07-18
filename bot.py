@@ -24,7 +24,7 @@ from cogs import ImageEdit
 from cogs import ImageTag
 from cogs import SpotifyUtils
 from cogs import Help
-from cogs import TouhouLeaderboard
+from cogs import LeaderboardCog
 from cogs import Misc
 
 
@@ -85,7 +85,7 @@ async def setup_hook():
 
     await bot.add_cog(Help.Help(bot))
 
-    await bot.add_cog(TouhouLeaderboard.LeaderboardCog(bot))
+    await bot.add_cog(LeaderboardCog.LeaderboardCog(bot))
 
     await bot.add_cog(Misc.Misc(bot))
 
