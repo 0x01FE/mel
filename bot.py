@@ -85,7 +85,7 @@ async def setup_hook():
 
     await bot.add_cog(Help.Help(bot))
 
-    await bot.add_cog(TouhouLeaderboard.Leaderboard(bot))
+    await bot.add_cog(TouhouLeaderboard.LeaderboardCog(bot))
 
     await bot.add_cog(Misc.Misc(bot))
 

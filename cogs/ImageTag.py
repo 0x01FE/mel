@@ -37,10 +37,12 @@ class ImageTag(commands.GroupCog, name="tag"):
             tag_index["last"] = tag_index["last"] + 1
 
             response = requests.get(url, timeout=60)
-            file = open(TAG_DATA_PATH + filename + ext,'wb')
-            file.write(response.content)
-            file.close()
 
+            # Save the image
+            with open(f"{ TAG_DATA_PATH }{ filename }{ ext }", 'wb') as f:
+                f.write(response.content)
+
+            # Save the associated tag data
             with open(f'{ TAG_DATA_PATH }tags.json', 'w+') as f:
                 f.write(json.dumps(tag_index))
 
